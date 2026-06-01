@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# infra/deploy.sh — deploy backend Lambda functions & frontend static site
+# infra/deploy.sh — deploy backend Lambda & frontend static site
 # Usage: ./infra/deploy.sh [--env staging|production]
 set -euo pipefail
 
-# ─── Config ────────────────────────────────────────────────────────────────
+# ─── Config ──────────────────────────────────────────────────────────────────
 ENV="${DEPLOY_ENV:-production}"
 AWS_REGION="${AWS_REGION:-ap-southeast-1}"
 STACK_NAME="notohub-${ENV}"
@@ -11,12 +11,11 @@ STACK_NAME="notohub-${ENV}"
 FRONTEND_BUCKET="${FRONTEND_BUCKET:?Set FRONTEND_BUCKET env var}"
 CLOUDFRONT_DIST_ID="${CLOUDFRONT_DIST_ID:-}"
 
-LAMBDA_ARTICLES_ARN="${LAMBDA_ARTICLES_ARN:-}"
-LAMBDA_SYNC_ARN="${LAMBDA_SYNC_ARN:-}"
+# Single Lambda function (handler: handler.handler, runtime: python3.12)
+LAMBDA_FUNCTION_NAME="${LAMBDA_FUNCTION_NAME:-}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# ─── Parse args ─────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case $1 in
     --env) ENV="$2"; shift 2 ;;
@@ -27,53 +26,31 @@ done
 echo "🚀  Deploying notohub → env=${ENV}, region=${AWS_REGION}"
 echo "    Stack: ${STACK_NAME}"
 
-# ─── 1. Build shared ─────────────────────────────────────────────────────────
+# ─── 1. Build shared (JS types — for frontend) ───────────────────────────────
 echo ""
 echo "📦  Building @notohub/shared…"
 (cd "${ROOT_DIR}" && npm run build:shared)
 
-# ─── 2. Build backend ─────────────────────────────────────────────────────────
+# ─── 2. Package Python Lambda ────────────────────────────────────────────────
 echo ""
-echo "📦  Building @notohub/backend…"
-(cd "${ROOT_DIR}" && npm run build:backend)
+echo "📦  Packaging Python Lambda…"
+bash "${ROOT_DIR}/infra/build_lambda.sh" --no-boto3
 
-# ─── 3. Deploy Lambda functions ───────────────────────────────────────────────
+# ─── 3. Deploy Lambda ────────────────────────────────────────────────────────
 echo ""
-echo "⚡  Deploying Lambda: articles handler…"
-(
-  cd "${ROOT_DIR}/backend/dist"
-  zip -r /tmp/articles.zip handlers/articles.js handlers/articles.js.map
-)
-
-if [[ -n "${LAMBDA_ARTICLES_ARN}" ]]; then
+if [[ -n "${LAMBDA_FUNCTION_NAME}" ]]; then
+  echo "⚡  Updating Lambda function: ${LAMBDA_FUNCTION_NAME}…"
   aws lambda update-function-code \
     --region "${AWS_REGION}" \
-    --function-name "${LAMBDA_ARTICLES_ARN}" \
-    --zip-file fileb:///tmp/articles.zip \
+    --function-name "${LAMBDA_FUNCTION_NAME}" \
+    --zip-file "fileb://${ROOT_DIR}/backend/dist/lambda.zip" \
     --no-cli-pager
-  echo "   ✓ articles Lambda updated"
+  echo "   ✓ Lambda updated (handler: handler.handler, runtime: python3.12)"
 else
-  echo "   ⚠  LAMBDA_ARTICLES_ARN not set — skipping Lambda update"
+  echo "   ⚠  LAMBDA_FUNCTION_NAME not set — skipping Lambda update"
 fi
 
-echo "⚡  Deploying Lambda: sync handler…"
-(
-  cd "${ROOT_DIR}/backend/dist"
-  zip -r /tmp/sync.zip handlers/sync.js handlers/sync.js.map
-)
-
-if [[ -n "${LAMBDA_SYNC_ARN}" ]]; then
-  aws lambda update-function-code \
-    --region "${AWS_REGION}" \
-    --function-name "${LAMBDA_SYNC_ARN}" \
-    --zip-file fileb:///tmp/sync.zip \
-    --no-cli-pager
-  echo "   ✓ sync Lambda updated"
-else
-  echo "   ⚠  LAMBDA_SYNC_ARN not set — skipping Lambda update"
-fi
-
-# ─── 4. Build & deploy frontend ───────────────────────────────────────────────
+# ─── 4. Build & deploy frontend ──────────────────────────────────────────────
 echo ""
 echo "🌐  Building @notohub/frontend (static export)…"
 (cd "${ROOT_DIR}/frontend" && npm run build)
@@ -87,7 +64,7 @@ aws s3 sync \
   --cache-control "public, max-age=3600" \
   --no-cli-pager
 
-# ─── 5. Invalidate CloudFront ─────────────────────────────────────────────────
+# ─── 5. Invalidate CloudFront ────────────────────────────────────────────────
 if [[ -n "${CLOUDFRONT_DIST_ID}" ]]; then
   echo ""
   echo "🔄  Invalidating CloudFront distribution ${CLOUDFRONT_DIST_ID}…"
