@@ -1,9 +1,7 @@
 import json
 from datetime import datetime, timezone
 
-import markdown as md
-
-from lib.notion import fetch_notion_pages, page_to_metadata, page_to_markdown
+from lib.notion import fetch_notion_pages, page_to_metadata, page_to_html
 from lib.dynamodb import put_article, get_article_by_notion_id
 from lib.s3 import put_article_html
 from lib.response import ok, server_error
@@ -33,16 +31,14 @@ def handle_sync(event: dict) -> dict:
                 if existing and existing.get("notionLastEditedAt") == page["last_edited_time"]:
                     continue
 
-                # Notion blocks → Markdown → HTML
-                markdown_content = page_to_markdown(page_id)
-                html = md.markdown(
-                    markdown_content,
-                    extensions=["fenced_code", "tables", "attr_list"],
-                )
-
                 metadata = page_to_metadata(page, existing_id=existing_id)
 
-                s3_key = put_article_html(metadata["id"], html)
+                # Notion blocks → styled HTML (via notion_to_html renderer)
+                author_name = metadata["author"]["name"]
+                html = page_to_html(page_id, author_name)
+
+                # Upload to s3://<bucket>/{author_name}/{slug}/index.html
+                s3_key = put_article_html(author_name, metadata["slug"], html)
 
                 record = {
                     "PK": f"ARTICLE#{metadata['id']}",

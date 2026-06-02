@@ -1,12 +1,5 @@
-# Notion
-notion-client==2.2.1
-notion2md==0.3.3
-
-# Markdown rendering
-markdown==3.6
-
 # AWS SDK (also available in Lambda runtime; pinned here for local dev)
 boto3==1.34.144
 
-# Utilities
-python-dateutil==2.9.0
+# Local dev only — loads .env automatically; not needed in Lambda
+python-dotenv==1.0.1

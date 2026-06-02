@@ -1,22 +1,27 @@
 import re
 import uuid
-from typing import Any
-
-from notion_client import Client
-from notion2md.exporter.block import StringExporter
+from typing import Callable
 
 from lib.config import config
+from lib.notion_to_html import (
+    fetch_database_pages,
+    page_id_to_html,
+    token_auth,
+)
 
-# ─── Singleton ───────────────────────────────────────────────────────────────
+# ─── Auth singleton ──────────────────────────────────────────────────────────
+# Using token_auth for now (private integration token from env).
+# When moving to OAuth / public connections, swap this for your OAuth factory
+# and pass the user's access token instead.
 
-_notion_client: Client | None = None
+_auth_fn: Callable[[], dict] | None = None
 
 
-def _get_client() -> Client:
-    global _notion_client
-    if _notion_client is None:
-        _notion_client = Client(auth=config.notion_api_key)
-    return _notion_client
+def _get_auth() -> Callable[[], dict]:
+    global _auth_fn
+    if _auth_fn is None:
+        _auth_fn = token_auth(config.notion_api_key)
+    return _auth_fn
 
 
 # ─── Property extractors ─────────────────────────────────────────────────────
@@ -85,30 +90,7 @@ def _cover_url(page: dict) -> str | None:
 
 def fetch_notion_pages() -> list[dict]:
     """Return all Published pages from the configured Notion database."""
-    notion = _get_client()
-    pages: list[dict] = []
-    cursor: str | None = None
-
-    while True:
-        kwargs: dict[str, Any] = {
-            "database_id": config.notion_database_id,
-            "filter": {"property": "Status", "select": {"equals": "Published"}},
-            "sorts": [{"property": "Published Date", "direction": "descending"}],
-            "page_size": 100,
-        }
-        if cursor:
-            kwargs["start_cursor"] = cursor
-
-        response = notion.databases.query(**kwargs)
-        pages.extend(
-            r for r in response.get("results", []) if r.get("object") == "page"
-        )
-
-        if not response.get("has_more"):
-            break
-        cursor = response.get("next_cursor")
-
-    return pages
+    return fetch_database_pages(config.notion_database_id, _get_auth())
 
 
 def page_to_metadata(page: dict, existing_id: str | None = None) -> dict:
@@ -132,7 +114,10 @@ def page_to_metadata(page: dict, existing_id: str | None = None) -> dict:
     }
 
 
-def page_to_markdown(page_id: str) -> str:
-    """Convert a Notion page's block content to a Markdown string."""
-    exporter = StringExporter(block_id=page_id, token=config.notion_api_key)
-    return exporter.export()
+def page_to_html(page_id: str, author_name: str) -> str:
+    """
+    Fetch a Notion page's blocks and render to a styled HTML string.
+
+    Uses the current auth factory (token_auth for now; swap for OAuth later).
+    """
+    return page_id_to_html(page_id, _get_auth(), author=author_name)

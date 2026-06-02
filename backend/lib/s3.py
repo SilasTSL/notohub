@@ -1,4 +1,7 @@
+import re
+
 import boto3
+from botocore.exceptions import ClientError
 
 from lib.config import config
 
@@ -16,15 +19,47 @@ def _get_client():
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def article_s3_key(article_id: str) -> str:
-    return f"{config.s3_content_prefix}{article_id}.html"
+def _slugify(value: str) -> str:
+    """Lowercase and replace any non-alphanumeric run with a hyphen."""
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+
+
+def article_s3_key(username: str, slug: str) -> str:
+    """
+    Build the S3 object key for a hosted article page.
+
+    The key follows the pattern:
+        {username}/{slug}/index.html
+
+    This means the article is served at:
+        https://<your-domain>/{username}/{slug}/
+
+    Args:
+        username: Author identifier (will be slugified, e.g. "John Doe" → "john-doe").
+        slug:     Article slug (already slugified, e.g. "my-first-article").
+    """
+    return f"{_slugify(username)}/{slug}/index.html"
 
 
 # ─── Public API ──────────────────────────────────────────────────────────────
 
-def put_article_html(article_id: str, html: str) -> str:
-    """Store rendered HTML in S3. Returns the S3 key."""
-    key = article_s3_key(article_id)
+def put_article_html(username: str, slug: str, html: str) -> str:
+    """
+    Upload rendered article HTML to S3 for static website hosting.
+
+    Stores the file at:
+        s3://<bucket>/{username}/{slug}/index.html
+
+    Args:
+        username: Author identifier used as the first path segment.
+        slug:     Article slug used as the second path segment.
+        html:     Rendered HTML content to upload.
+
+    Returns:
+        The S3 object key (e.g. "john-doe/my-first-article/index.html").
+    """
+    key = article_s3_key(username, slug)
+
     _get_client().put_object(
         Bucket=config.s3_bucket_name,
         Key=key,
@@ -32,22 +67,35 @@ def put_article_html(article_id: str, html: str) -> str:
         ContentType="text/html; charset=utf-8",
         CacheControl="public, max-age=3600",
     )
+
     return key
 
 
 def get_article_html(s3_key: str) -> str | None:
-    """Fetch rendered HTML from S3. Returns None if the object doesn't exist."""
+    """
+    Fetch rendered HTML for an article from S3.
+
+    Args:
+        s3_key: The full S3 object key (as returned by put_article_html).
+
+    Returns:
+        The HTML string, or None if the object does not exist.
+    """
     try:
         response = _get_client().get_object(
             Bucket=config.s3_bucket_name,
             Key=s3_key,
         )
         return response["Body"].read().decode("utf-8")
-    except _get_client().exceptions.NoSuchKey:
-        return None
-    except Exception as exc:
-        # ClientError with code NoSuchKey also surfaces this way
-        code = getattr(getattr(exc, "response", {}).get("Error", {}), "get", lambda k, d=None: d)("Code")
-        if code == "NoSuchKey":
+    except ClientError as exc:
+        if exc.response["Error"]["Code"] == "NoSuchKey":
             return None
         raise
+
+
+def delete_article_html(s3_key: str) -> None:
+    """Delete an article's HTML object from S3 (e.g. when unpublishing)."""
+    _get_client().delete_object(
+        Bucket=config.s3_bucket_name,
+        Key=s3_key,
+    )
