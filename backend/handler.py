@@ -1,24 +1,25 @@
 """
 AWS Lambda entry point for the notohub backend.
-
 Configure Lambda with handler: handler.handler
 
 Routes:
-  GET  /articles          → list article metadata
-  GET  /articles/{slug}   → article detail + HTML content
-  POST /sync              → trigger Notion → S3/DynamoDB sync
+  GET  /articles                          → list published article metadata
+  GET  /articles/{slug}                   → article detail + HTML content
+  POST /v1/article                        → create a new article (draft)
+  POST /v1/article/{articleId}/publish    → render from Notion and host on S3
 """
 import re
 from typing import Any
 
 from lib.response import no_content, not_found
-
-# Import handlers lazily-ish — modules are cached after first import
 from handlers.articles import handle_list, handle_detail
-from handlers.sync import handle_sync
+from handlers.article import handle_create, handle_publish
 
-# Slug route: /articles/<slug>  (slug may contain letters, digits, hyphens)
+# /articles/<slug>
 _ARTICLE_DETAIL_RE = re.compile(r"^/articles/([A-Za-z0-9][A-Za-z0-9\-]*)/?$")
+
+# /v1/article/<uuid>/publish  (UUID may contain hyphens)
+_PUBLISH_RE = re.compile(r"^/v1/article/([A-Za-z0-9\-]+)/publish/?$")
 
 
 def handler(event: dict[str, Any], context: Any) -> dict:
@@ -29,18 +30,22 @@ def handler(event: dict[str, Any], context: Any) -> dict:
     if method == "OPTIONS":
         return no_content()
 
-    # ── POST /sync ──────────────────────────────────────────────────────────
-    if method == "POST" and path == "/sync":
-        return handle_sync(event)
+    # ── POST /v1/article/{id}/publish ───────────────────────────────────────
+    pub_match = _PUBLISH_RE.match(path)
+    if method == "POST" and pub_match:
+        return handle_publish(event, pub_match.group(1))
 
-    if method == "GET":
-        # ── GET /articles/{slug} ────────────────────────────────────────────
-        match = _ARTICLE_DETAIL_RE.match(path)
-        if match:
-            return handle_detail(event, match.group(1))
+    # ── POST /v1/article ────────────────────────────────────────────────────
+    if method == "POST" and path == "/v1/article":
+        return handle_create(event)
 
-        # ── GET /articles ───────────────────────────────────────────────────
-        if path in ("/articles", "/"):
-            return handle_list(event)
+    # ── GET /articles/{slug} ────────────────────────────────────────────────
+    slug_match = _ARTICLE_DETAIL_RE.match(path)
+    if method == "GET" and slug_match:
+        return handle_detail(event, slug_match.group(1))
+
+    # ── GET /articles ───────────────────────────────────────────────────────
+    if method == "GET" and path in ("/articles", "/"):
+        return handle_list(event)
 
     return not_found(f"Route not found: {method} {path}")

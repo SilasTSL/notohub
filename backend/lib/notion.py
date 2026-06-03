@@ -4,8 +4,9 @@ from typing import Callable
 
 from lib.config import config
 from lib.notion_to_html import (
-    fetch_database_pages,
+    fetch_notion_page,
     page_id_to_html,
+    render_page_data,
     token_auth,
 )
 
@@ -88,11 +89,6 @@ def _cover_url(page: dict) -> str | None:
 
 # ─── Public API ──────────────────────────────────────────────────────────────
 
-def fetch_notion_pages() -> list[dict]:
-    """Return all Published pages from the configured Notion database."""
-    return fetch_database_pages(config.notion_database_id, _get_auth())
-
-
 def page_to_metadata(page: dict, existing_id: str | None = None) -> dict:
     """Convert a Notion page object to an article metadata dict."""
     title = _title(page)
@@ -121,3 +117,27 @@ def page_to_html(page_id: str, author_name: str) -> str:
     Uses the current auth factory (token_auth for now; swap for OAuth later).
     """
     return page_id_to_html(page_id, _get_auth(), author=author_name)
+
+
+def fetch_page_for_publish(
+    page_id: str,
+    existing_id: str | None = None,
+) -> tuple[dict, str]:
+    """
+    Fetch a Notion page and return (metadata, html) in a single API roundtrip.
+
+    Combines fetch_notion_page + page_to_metadata + render_page_data so the
+    publish handler doesn't make two separate calls to Notion.
+
+    Args:
+        page_id:     Notion page ID.
+        existing_id: Existing article ID to preserve (skips generating a new UUID).
+
+    Returns:
+        Tuple of (metadata dict, rendered HTML string).
+    """
+    auth_fn = _get_auth()
+    page_data = fetch_notion_page(page_id, auth_fn)
+    metadata = page_to_metadata(page_data["meta"], existing_id=existing_id)
+    html = render_page_data(page_data, author=metadata["author"]["name"])
+    return metadata, html

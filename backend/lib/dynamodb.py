@@ -24,16 +24,16 @@ def _get_table() -> Any:
 def _record_to_metadata(record: dict) -> dict:
     return {
         "id": record["id"],
-        "notionPageId": record["notionPageId"],
+        "notionPageId": record.get("notionPageId", ""),
         "title": record["title"],
-        "slug": record["slug"],
-        "excerpt": record["excerpt"],
+        "slug": record.get("slug", ""),
+        "excerpt": record.get("excerpt", ""),
         "coverImageUrl": record.get("coverImageUrl"),
-        "tags": json.loads(record["tagsJson"]),
-        "author": json.loads(record["authorJson"]),
-        "publishedAt": record["publishedAt"],
-        "updatedAt": record["updatedAt"],
-        "notionLastEditedAt": record["notionLastEditedAt"],
+        "tags": json.loads(record["tagsJson"]) if "tagsJson" in record else [],
+        "author": json.loads(record["authorJson"]) if "authorJson" in record else {"id": "unknown", "name": record.get("authorName", "Unknown")},
+        "publishedAt": record.get("publishedAt", record.get("createdAt", "")),
+        "updatedAt": record.get("updatedAt", ""),
+        "notionLastEditedAt": record.get("notionLastEditedAt", ""),
     }
 
 
@@ -69,10 +69,18 @@ def get_article_by_notion_id(notion_page_id: str) -> dict | None:
     return items[0] if items else None
 
 
+def get_article_by_id(article_id: str) -> dict | None:
+    """Fetch a raw article record by its ID (primary key lookup)."""
+    response = _get_table().get_item(
+        Key={"PK": f"ARTICLE#{article_id}", "SK": "ARTICLE"}
+    )
+    return response.get("Item")
+
+
 def list_articles(limit: int = 50) -> list[dict]:
-    """Scan and return article metadata sorted by publishedAt desc."""
+    """Scan and return published article metadata sorted by publishedAt desc."""
     response = _get_table().scan(
-        FilterExpression=Attr("SK").eq("ARTICLE"),
+        FilterExpression=Attr("SK").eq("ARTICLE") & Attr("status").eq("published"),
         Limit=limit,
     )
     items = [_record_to_metadata(item) for item in response.get("Items", [])]

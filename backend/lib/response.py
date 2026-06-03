@@ -55,6 +55,14 @@ def no_content() -> dict:
     return {"statusCode": 204, "headers": _cors_headers(), "body": ""}
 
 
+def bad_request(message: str) -> dict:
+    return {
+        "statusCode": 400,
+        "headers": {"Content-Type": "application/json", **_cors_headers()},
+        "body": _json({"success": False, "error": message}),
+    }
+
+
 def method_not_allowed() -> dict:
     return {
         "statusCode": 405,

@@ -801,6 +801,15 @@ def _render_html(page_data: dict, author: str) -> str:
 # 6.  PUBLIC ENTRY POINTS
 # ---------------------------------------------------------------------------
 
+def render_page_data(page_data: dict, author: str) -> str:
+    """
+    Render pre-fetched page data to HTML without making another API call.
+    Use this when you already have the result of fetch_notion_page() and
+    want to avoid a redundant round-trip to Notion.
+    """
+    return _render_html(page_data, author=author)
+
+
 def page_id_to_html(
     page_id: str,
     auth_fn: Callable[[], dict],

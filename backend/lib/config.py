@@ -10,7 +10,6 @@ def _required(key: str) -> str:
 
 class Config:
     notion_api_key: str = ""
-    notion_database_id: str = ""
     dynamodb_table_name: str = ""
     s3_bucket_name: str = ""
     s3_content_prefix: str = ""
@@ -19,7 +18,6 @@ class Config:
 
     def __init__(self) -> None:
         self.notion_api_key = _required("NOTION_API_KEY")
-        self.notion_database_id = _required("NOTION_DATABASE_ID")
         self.dynamodb_table_name = _required("DYNAMODB_TABLE_NAME")
         self.s3_bucket_name = _required("S3_BUCKET_NAME")
         self.s3_content_prefix = os.environ.get("S3_CONTENT_PREFIX", "articles/")
