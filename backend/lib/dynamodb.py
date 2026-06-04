@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from typing import Any
 
@@ -52,17 +54,6 @@ def get_article_by_slug(slug: str) -> dict | None:
         IndexName="GSI1",
         KeyConditionExpression=Key("GSI1PK").eq(f"SLUG#{slug}")
         & Key("GSI1SK").eq("ARTICLE"),
-        Limit=1,
-    )
-    items = response.get("Items", [])
-    return items[0] if items else None
-
-
-def get_article_by_notion_id(notion_page_id: str) -> dict | None:
-    """Fetch a raw article record by Notion page ID."""
-    response = _get_table().query(
-        IndexName="NotionPageIndex",
-        KeyConditionExpression=Key("notionPageId").eq(notion_page_id),
         Limit=1,
     )
     items = response.get("Items", [])

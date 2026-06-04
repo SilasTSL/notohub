@@ -7,6 +7,8 @@ Auth is intentionally decoupled — swap `token_auth()` for your own
 OAuth / service-account function and pass it into `page_id_to_html()`.
 """
 
+from __future__ import annotations
+
 import re
 import json
 import math
