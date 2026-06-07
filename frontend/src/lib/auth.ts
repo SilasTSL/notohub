@@ -1,6 +1,7 @@
 import {
   signUp,
   confirmSignUp,
+  resendSignUpCode,
   signIn,
   signOut,
   getCurrentUser,
@@ -46,6 +47,18 @@ export async function authSignUp(
     })
     return { step: 'CONFIRM_SIGN_UP' }
   } catch (error) {
+    const err = error as { name?: string }
+    if (err.name === 'UsernameExistsException') {
+      // Account exists but may never have been confirmed. Try to resend the
+      // code — if it succeeds the account is unconfirmed and we can still
+      // onboard this user. If it fails, the account is confirmed and taken.
+      try {
+        await resendSignUpCode({ username: email })
+        return { step: 'CONFIRM_SIGN_UP' }
+      } catch {
+        throw new Error('An account with this email already exists')
+      }
+    }
     mapError(error)
   }
 }
@@ -60,6 +73,11 @@ export async function authConfirmSignUp(
       confirmationCode: code,
     })
   } catch (error) {
+    const err = error as { name?: string }
+    // NotAuthorizedException here means the account is already confirmed
+    // ("User cannot be confirmed. Current status is CONFIRMED"). The caller
+    // can still proceed to sign-in — no need to surface this as an error.
+    if (err.name === 'NotAuthorizedException') return
     mapError(error)
   }
 }
@@ -68,6 +86,15 @@ export async function authSignIn(email: string, password: string): Promise<void>
   try {
     await signIn({ username: email, password })
   } catch (error) {
+    const err = error as { name?: string }
+    // Amplify throws this when signIn is called while a session is already active
+    // (e.g. a previous confirmation succeeded but a later step failed, leaving a
+    // live session open). Sign out the stale session and retry.
+    if (err.name === 'UserAlreadyAuthenticatedException') {
+      await signOut()
+      await signIn({ username: email, password })
+      return
+    }
     mapError(error)
   }
 }

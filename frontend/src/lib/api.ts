@@ -13,16 +13,10 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-export async function registerUser(
-  email: string,
-  username: string
-): Promise<void> {
-  // Called after email confirmation — user is signed in via autoSignIn at this
-  // point, so we include the Bearer token so the backend can extract the sub.
-  const res = await authFetch(`${API_URL}/auth/register`, {
-    method: 'POST',
-    body: JSON.stringify({ email, username }),
-  })
+// Idempotent — safe to call on every sign-in. Email and username are read
+// from the JWT on the backend, so no body is needed.
+export async function registerUser(): Promise<void> {
+  const res = await authFetch(`${API_URL}/auth/register`, { method: 'POST' })
   await handleResponse<{ message?: string }>(res)
 }
 

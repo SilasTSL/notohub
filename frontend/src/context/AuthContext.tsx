@@ -52,6 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const currentUser = await authGetCurrentUser()
           setUser(currentUser)
+          // If this session was confirmed but the DynamoDB write failed previously,
+          // this idempotent call creates the missing record on the next visit.
+          if (currentUser) registerUser().catch(() => {})
         } finally {
           setLoading(false)
         }
@@ -70,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authSignIn(email, password)
     const currentUser = await authGetCurrentUser()
     setUser(currentUser)
+    registerUser().catch(() => {})
   }
 
   async function signUp(email: string, password: string, username: string) {
@@ -89,13 +93,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // no-op in fake mode — user is already set by signUp
       return
     }
-    const username = sessionStorage.getItem(PENDING_USERNAME_KEY) ?? ''
     const password = sessionStorage.getItem(PENDING_PASSWORD_KEY) ?? ''
     await authConfirmSignUp(email, code)
     sessionStorage.removeItem(PENDING_USERNAME_KEY)
     sessionStorage.removeItem(PENDING_PASSWORD_KEY)
-    await registerUser(email, username)
     await authSignIn(email, password)
+    // Non-fatal: if the DynamoDB write fails here the next signIn retries it.
+    await registerUser().catch(() => {})
     const currentUser = await authGetCurrentUser()
     setUser(currentUser)
   }
