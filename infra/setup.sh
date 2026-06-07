@@ -29,6 +29,8 @@ aws dynamodb create-table \
     AttributeName=SK,AttributeType=S \
     AttributeName=GSI1PK,AttributeType=S \
     AttributeName=GSI1SK,AttributeType=S \
+    AttributeName=GSI2PK,AttributeType=S \
+    AttributeName=GSI2SK,AttributeType=S \
   --key-schema \
     AttributeName=PK,KeyType=HASH \
     AttributeName=SK,KeyType=RANGE \
@@ -40,10 +42,42 @@ aws dynamodb create-table \
         {"AttributeName":"GSI1SK","KeyType":"RANGE"}
       ],
       "Projection": {"ProjectionType":"ALL"}
+    },
+    {
+      "IndexName": "GSI2",
+      "KeySchema": [
+        {"AttributeName":"GSI2PK","KeyType":"HASH"},
+        {"AttributeName":"GSI2SK","KeyType":"RANGE"}
+      ],
+      "Projection": {"ProjectionType":"ALL"}
     }
   ]' \
   --billing-mode PAY_PER_REQUEST \
   --no-cli-pager || echo "   Table may already exist, continuing…"
+
+# Add GSI2 to existing tables that were created before this index was defined.
+# Safe to run even if GSI2 already exists — DynamoDB will return a validation
+# error which is suppressed below.
+echo "   Ensuring GSI2 exists on ${TABLE_NAME} (safe to rerun)…"
+aws dynamodb update-table \
+  --region "${AWS_REGION}" \
+  --table-name "${TABLE_NAME}" \
+  --attribute-definitions \
+    AttributeName=GSI2PK,AttributeType=S \
+    AttributeName=GSI2SK,AttributeType=S \
+  --global-secondary-index-updates '[
+    {
+      "Create": {
+        "IndexName": "GSI2",
+        "KeySchema": [
+          {"AttributeName":"GSI2PK","KeyType":"HASH"},
+          {"AttributeName":"GSI2SK","KeyType":"RANGE"}
+        ],
+        "Projection": {"ProjectionType":"ALL"}
+      }
+    }
+  ]' \
+  --no-cli-pager 2>/dev/null || true
 
 echo "   ✓ DynamoDB table: ${TABLE_NAME}"
 

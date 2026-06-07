@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, signOut } = useAuth()
   const router = useRouter()
 
-  function handleSignOut() {
-    logout()
+  async function handleSignOut() {
+    await signOut()
     router.push('/login')
   }
 

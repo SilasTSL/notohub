@@ -1,5 +1,8 @@
 # AWS SDK (also available in Lambda runtime; pinned here for local dev)
 boto3==1.34.144
 
+# JWT verification for Cognito ID tokens (includes cryptography for RS256)
+PyJWT[crypto]==2.9.0
+
 # Local dev only — loads .env automatically; not needed in Lambda
 python-dotenv==1.0.1

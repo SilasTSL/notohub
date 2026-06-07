@@ -55,6 +55,14 @@ def no_content() -> dict:
     return {"statusCode": 204, "headers": _cors_headers(), "body": ""}
 
 
+def unauthorized(message: str = "Unauthorized") -> dict:
+    return {
+        "statusCode": 401,
+        "headers": {"Content-Type": "application/json", **_cors_headers()},
+        "body": _json({"success": False, "error": message}),
+    }
+
+
 def bad_request(message: str) -> dict:
     return {
         "statusCode": 400,

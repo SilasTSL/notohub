@@ -3,10 +3,14 @@ AWS Lambda entry point for the notohub backend.
 Configure Lambda with handler: handler.handler
 
 Routes:
-  GET  /articles                          → list published article metadata
-  GET  /articles/{slug}                   → article detail + HTML content
-  POST /v1/article                        → create a new article (draft)
-  POST /v1/article/{articleId}/publish    → render from Notion and host on S3
+  POST /auth/register                     → create DynamoDB user record (requires auth)
+  POST /articles/publish                  → render Notion page and publish (requires auth)
+  GET  /v1/articles                       → list authenticated user's articles (requires auth)
+  GET  /articles                          → list all published article metadata (public)
+  GET  /articles/{slug}                   → article detail + HTML content (public)
+  POST /v1/article                        → create a new article draft (legacy)
+  POST /v1/article/{articleId}/publish    → render from Notion and host on S3 (legacy)
+  OPTIONS *                               → CORS preflight
 """
 import re
 from typing import Any
@@ -14,11 +18,13 @@ from typing import Any
 from lib.response import no_content, not_found
 from handlers.articles import handle_list, handle_detail
 from handlers.article import handle_create, handle_publish
+from handlers.auth import handle_register
+from handlers.user_articles import handle_user_publish, handle_user_list
 
-# /articles/<slug>
+# /articles/<slug>  — must not match "publish" as a slug for the POST route
 _ARTICLE_DETAIL_RE = re.compile(r"^/articles/([A-Za-z0-9][A-Za-z0-9\-]*)/?$")
 
-# /v1/article/<uuid>/publish  (UUID may contain hyphens)
+# /v1/article/<uuid>/publish
 _PUBLISH_RE = re.compile(r"^/v1/article/([A-Za-z0-9\-]+)/publish/?$")
 
 
@@ -30,12 +36,24 @@ def handler(event: dict[str, Any], context: Any) -> dict:
     if method == "OPTIONS":
         return no_content()
 
-    # ── POST /v1/article/{id}/publish ───────────────────────────────────────
+    # ── POST /auth/register ─────────────────────────────────────────────────
+    if method == "POST" and path == "/auth/register":
+        return handle_register(event)
+
+    # ── POST /articles/publish ──────────────────────────────────────────────
+    if method == "POST" and path == "/articles/publish":
+        return handle_user_publish(event)
+
+    # ── GET /v1/articles ────────────────────────────────────────────────────
+    if method == "GET" and path == "/v1/articles":
+        return handle_user_list(event)
+
+    # ── Legacy: POST /v1/article/{id}/publish ───────────────────────────────
     pub_match = _PUBLISH_RE.match(path)
     if method == "POST" and pub_match:
         return handle_publish(event, pub_match.group(1))
 
-    # ── POST /v1/article ────────────────────────────────────────────────────
+    # ── Legacy: POST /v1/article ────────────────────────────────────────────
     if method == "POST" and path == "/v1/article":
         return handle_create(event)
 

@@ -68,6 +68,16 @@ def get_article_by_id(article_id: str) -> dict | None:
     return response.get("Item")
 
 
+def list_user_articles(user_id: str) -> list[dict]:
+    """List a user's published articles via GSI2, newest first."""
+    response = _get_table().query(
+        IndexName="GSI2",
+        KeyConditionExpression=Key("GSI2PK").eq(user_id),
+        ScanIndexForward=False,
+    )
+    return [_record_to_metadata(item) for item in response.get("Items", [])]
+
+
 def list_articles(limit: int = 50) -> list[dict]:
     """Scan and return published article metadata sorted by publishedAt desc."""
     response = _get_table().scan(

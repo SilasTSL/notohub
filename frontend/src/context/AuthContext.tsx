@@ -1,33 +1,117 @@
 'use client'
 
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import '@/lib/amplify'
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react'
+import {
+  authSignIn,
+  authSignUp,
+  authConfirmSignUp,
+  authSignOut,
+  authGetCurrentUser,
+} from '@/lib/auth'
+import { registerUser } from '@/lib/api'
+import type { AuthUser } from '@/types'
 
-export type AuthUser = {
-  email: string
-  username: string
-}
+const IS_FAKE_AUTH = process.env.NEXT_PUBLIC_USE_FAKE_AUTH === 'true'
+const FAKE_USER_KEY = 'nh_fake_user'
+const PENDING_USERNAME_KEY = 'nh_pending_username'
+const PENDING_PASSWORD_KEY = 'nh_pending_pw'
 
-type AuthContextType = {
+interface AuthContextType {
   user: AuthUser | null
-  login: (email: string, username: string) => void
-  logout: () => void
+  loading: boolean
+  signIn: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, username: string) => Promise<void>
+  confirmSignUp: (email: string, code: string) => Promise<void>
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  function login(email: string, username: string) {
-    setUser({ email, username })
+  useEffect(() => {
+    async function init() {
+      if (IS_FAKE_AUTH) {
+        try {
+          const stored = localStorage.getItem(FAKE_USER_KEY)
+          if (stored) setUser(JSON.parse(stored) as AuthUser)
+        } catch {
+          localStorage.removeItem(FAKE_USER_KEY)
+        }
+        setLoading(false)
+      } else {
+        try {
+          const currentUser = await authGetCurrentUser()
+          setUser(currentUser)
+        } finally {
+          setLoading(false)
+        }
+      }
+    }
+    init()
+  }, [])
+
+  async function signIn(email: string, password: string) {
+    if (IS_FAKE_AUTH) {
+      const fakeUser: AuthUser = { userId: 'fake-id', email, username: 'testuser' }
+      localStorage.setItem(FAKE_USER_KEY, JSON.stringify(fakeUser))
+      setUser(fakeUser)
+      return
+    }
+    await authSignIn(email, password)
+    const currentUser = await authGetCurrentUser()
+    setUser(currentUser)
   }
 
-  function logout() {
+  async function signUp(email: string, password: string, username: string) {
+    if (IS_FAKE_AUTH) {
+      const fakeUser: AuthUser = { userId: 'fake-id', email, username: 'testuser' }
+      localStorage.setItem(FAKE_USER_KEY, JSON.stringify(fakeUser))
+      setUser(fakeUser)
+      return
+    }
+    await authSignUp(email, password, username)
+    sessionStorage.setItem(PENDING_USERNAME_KEY, username)
+    sessionStorage.setItem(PENDING_PASSWORD_KEY, password)
+  }
+
+  async function confirmSignUp(email: string, code: string) {
+    if (IS_FAKE_AUTH) {
+      // no-op in fake mode — user is already set by signUp
+      return
+    }
+    const username = sessionStorage.getItem(PENDING_USERNAME_KEY) ?? ''
+    const password = sessionStorage.getItem(PENDING_PASSWORD_KEY) ?? ''
+    await authConfirmSignUp(email, code)
+    sessionStorage.removeItem(PENDING_USERNAME_KEY)
+    sessionStorage.removeItem(PENDING_PASSWORD_KEY)
+    await registerUser(email, username)
+    await authSignIn(email, password)
+    const currentUser = await authGetCurrentUser()
+    setUser(currentUser)
+  }
+
+  async function signOut() {
+    if (IS_FAKE_AUTH) {
+      localStorage.removeItem(FAKE_USER_KEY)
+      setUser(null)
+      return
+    }
+    await authSignOut()
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, confirmSignUp, signOut }}>
       {children}
     </AuthContext.Provider>
   )

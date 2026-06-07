@@ -15,14 +15,25 @@ class Config:
     s3_content_prefix: str = ""
     aws_region: str = ""
     allowed_origin: str = ""
+    cognito_user_pool_id: str = ""
+    cognito_app_client_id: str = ""
+    cognito_region: str = ""
 
     def __init__(self) -> None:
-        self.notion_api_key = _required("NOTION_API_KEY")
+        # Notion — optional so auth-only routes work without it configured
+        self.notion_api_key = os.environ.get("NOTION_API_KEY", "")
+
         self.dynamodb_table_name = _required("DYNAMODB_TABLE_NAME")
         self.s3_bucket_name = _required("S3_BUCKET_NAME")
         self.s3_content_prefix = os.environ.get("S3_CONTENT_PREFIX", "articles/")
         self.aws_region = os.environ.get("AWS_REGION", "ap-southeast-1")
         self.allowed_origin = os.environ.get("ALLOWED_ORIGIN", "*")
+
+        # Cognito — optional so existing routes keep working if not yet set;
+        # lib/cognito.py raises a clear EnvironmentError at call time if missing.
+        self.cognito_user_pool_id = os.environ.get("COGNITO_USER_POOL_ID", "")
+        self.cognito_app_client_id = os.environ.get("COGNITO_APP_CLIENT_ID", "")
+        self.cognito_region = os.environ.get("COGNITO_REGION", self.aws_region)
 
 
 # Instantiated lazily at first import so Lambda init is fast during packaging
