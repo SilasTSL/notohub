@@ -71,6 +71,10 @@ def bad_request(message: str) -> dict:
     }
 
 
+def redirect(url: str) -> dict:
+    return {"statusCode": 302, "headers": {"Location": url}, "body": ""}
+
+
 def method_not_allowed() -> dict:
     return {
         "statusCode": 405,

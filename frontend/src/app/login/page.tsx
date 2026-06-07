@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -14,8 +14,12 @@ export default function LoginPage() {
   }>({})
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { user, loading: authLoading, signIn } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading && user) router.replace('/dashboard')
+  }, [user, authLoading, router])
 
   function validate() {
     const errs: { email?: string; password?: string } = {}

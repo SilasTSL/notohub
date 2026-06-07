@@ -4,8 +4,11 @@ Configure Lambda with handler: handler.handler
 
 Routes:
   POST /auth/register                     → create DynamoDB user record (requires auth)
+  GET  /auth/notion/connect               → return Notion OAuth URL (requires auth)
+  GET  /auth/notion/callback              → exchange code, store token, redirect to frontend
   POST /articles/publish                  → render Notion page and publish (requires auth)
   GET  /v1/articles                       → list authenticated user's articles (requires auth)
+  DELETE /v1/articles/{slug}              → delete a user's article (requires auth)
   GET  /articles                          → list all published article metadata (public)
   GET  /articles/{slug}                   → article detail + HTML content (public)
   POST /v1/article                        → create a new article draft (legacy)
@@ -18,7 +21,7 @@ from typing import Any
 from lib.response import no_content, not_found
 from handlers.articles import handle_list, handle_detail
 from handlers.article import handle_create, handle_publish
-from handlers.auth import handle_register
+from handlers.auth import handle_register, handle_notion_connect, handle_notion_callback
 from handlers.user_articles import handle_user_publish, handle_user_delete, handle_user_list
 
 # /articles/<slug>  — must not match "publish" as a slug for the POST route
@@ -42,6 +45,14 @@ def handler(event: dict[str, Any], context: Any) -> dict:
     # ── POST /auth/register ─────────────────────────────────────────────────
     if method == "POST" and path == "/auth/register":
         return handle_register(event)
+
+    # ── GET /auth/notion/connect ────────────────────────────────────────────
+    if method == "GET" and path == "/auth/notion/connect":
+        return handle_notion_connect(event)
+
+    # ── GET /auth/notion/callback ───────────────────────────────────────────
+    if method == "GET" and path == "/auth/notion/callback":
+        return handle_notion_callback(event)
 
     # ── POST /articles/publish ──────────────────────────────────────────────
     if method == "POST" and path == "/articles/publish":

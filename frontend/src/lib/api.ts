@@ -24,7 +24,8 @@ export async function registerUser(): Promise<void> {
 
 export async function getNotionConnectUrl(): Promise<{ url: string }> {
   const res = await authFetch(`${API_URL}/auth/notion/connect`)
-  return handleResponse<{ url: string }>(res)
+  const body = await handleResponse<{ data: { url: string } }>(res)
+  return body.data
 }
 
 // ─── Articles ─────────────────────────────────────────────────────────────────

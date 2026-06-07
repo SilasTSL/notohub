@@ -7,7 +7,7 @@ from lib.users import get_user
 from lib.notion import fetch_page_for_publish
 from lib.notion_to_html import _extract_page_id
 from lib.s3 import put_article_html, delete_article_html
-from lib.dynamodb import put_article, delete_article, list_user_articles, get_user_article_by_slug
+from lib.dynamodb import put_article, delete_article, list_user_articles, get_user_article_by_slug, get_user_notion_token
 from lib.response import ok, bad_request, unauthorized, not_found, server_error
 
 
@@ -17,9 +17,8 @@ def handle_user_publish(event: dict) -> dict:
 
     Single-shot publish: takes a Notion page URL and a user-chosen slug,
     renders the page to HTML, uploads to S3, and records it in DynamoDB.
-
-    Uses the shared NOTION_API_KEY for now. Per-user Notion OAuth tokens
-    will be swapped in after the backend is deployed.
+    Uses the user's stored Notion OAuth token — the user must connect their
+    Notion workspace via /auth/notion/connect before publishing.
     """
     try:
         user_info = get_verified_user(event)
@@ -58,8 +57,19 @@ def handle_user_publish(event: dict) -> dict:
             return not_found("User record not found — please sign out and back in")
         username = user_record.get("username", "unknown")
 
+    notion_token = get_user_notion_token(user_sub)
+    if not notion_token:
+        return bad_request(
+            "Notion workspace not connected. "
+            "Go to the onboarding page to connect your Notion account."
+        )
+
     try:
-        metadata, html = fetch_page_for_publish(notion_page_id, author_name=username)
+        metadata, html = fetch_page_for_publish(
+            notion_page_id,
+            access_token=notion_token,
+            author_name=username,
+        )
     except Exception as exc:
         return server_error(exc)
 

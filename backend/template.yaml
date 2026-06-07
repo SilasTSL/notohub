@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Notohub backend — single Lambda function behind an HTTP API Gateway.
+
+# ── Parameters ────────────────────────────────────────────────────────────────
+Parameters:
+  DynamoDBTableName:
+    Type: String
+    Default: notohub-articles-production
+  S3BucketName:
+    Type: String
+    Default: www.notohub.com
+  AllowedOrigin:
+    Type: String
+    Default: https://app.notohub.com
+    Description: CORS allowed origin for the frontend app
+  CognitoUserPoolId:
+    Type: String
+    Description: "Cognito User Pool ID (e.g. ap-southeast-1_xxxxxxxxx)"
+  CognitoAppClientId:
+    Type: String
+    Description: Cognito App Client ID
+  CognitoRegion:
+    Type: String
+    Default: ap-southeast-1
+    Description: Region where the Cognito User Pool lives
+  NotionClientId:
+    Type: String
+    Description: Notion OAuth app client ID
+  NotionClientSecret:
+    Type: String
+    NoEcho: true
+    Description: Notion OAuth app client secret
+  NotionRedirectUri:
+    Type: String
+    Default: https://api.notohub.com/auth/notion/callback
+    Description: OAuth redirect URI registered with Notion (production URL)
+
+# ── Globals ───────────────────────────────────────────────────────────────────
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 256
+    Runtime: python3.12
+    Handler: handler.handler
+
+# ── Resources ─────────────────────────────────────────────────────────────────
+Resources:
+
+  # HTTP API — CORS is handled inside Lambda, so no CorsConfiguration here.
+  # All routes proxy to NotohubFunction via PayloadFormatVersion 1.0 so that
+  # the Lambda event shape matches our local handler (httpMethod / path fields).
+  NotohubApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Description: Notohub REST API
+
+  NotohubFunction:
+    Type: AWS::Serverless::Function
+    # Custom build via Makefile — excludes .env, run_local.py, and other
+    # local-only files from the Lambda package.
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref DynamoDBTableName
+          S3_BUCKET_NAME: !Ref S3BucketName
+          # AWS_REGION is injected automatically by the Lambda runtime.
+          ALLOWED_ORIGIN: !Ref AllowedOrigin
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPoolId
+          COGNITO_APP_CLIENT_ID: !Ref CognitoAppClientId
+          COGNITO_REGION: !Ref CognitoRegion
+          NOTION_CLIENT_ID: !Ref NotionClientId
+          NOTION_CLIENT_SECRET: !Ref NotionClientSecret
+          NOTION_REDIRECT_URI: !Ref NotionRedirectUri
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: DynamoDB
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:DeleteItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource:
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBTableName}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBTableName}/index/*'
+            - Sid: S3
+              Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:GetObject
+                - s3:DeleteObject
+              Resource: !Sub 'arn:aws:s3:::${S3BucketName}/*'
+      Events:
+        # Catch-all for any path with segments
+        ApiProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref NotohubApi
+            Path: /{proxy+}
+            Method: ANY
+            PayloadFormatVersion: '1.0'
+        # Root path (API Gateway doesn't match /{proxy+} for /)
+        ApiRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref NotohubApi
+            Path: /
+            Method: ANY
+            PayloadFormatVersion: '1.0'
+
+# ── Outputs ───────────────────────────────────────────────────────────────────
+Outputs:
+  ApiUrl:
+    Description: >
+      HTTP API endpoint URL.
+      Point NEXT_PUBLIC_API_URL here until api.notohub.com is configured.
+    Value: !Sub 'https://${NotohubApi}.execute-api.${AWS::Region}.amazonaws.com'
+  FunctionName:
+    Description: Lambda function name (for aws lambda update-function-code)
+    Value: !Ref NotohubFunction
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt NotohubFunction.Arn

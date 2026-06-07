@@ -99,6 +99,26 @@ def list_user_articles(user_id: str) -> list[dict]:
     return [_record_to_metadata(item) for item in response.get("Items", [])]
 
 
+def save_notion_token(user_id: str, access_token: str) -> None:
+    """Persist the user's Notion OAuth access token on their user record."""
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
+    _get_table().update_item(
+        Key={"PK": f"USER#{user_id}", "SK": "USER"},
+        UpdateExpression="SET notionAccessToken = :token, updatedAt = :now",
+        ExpressionAttributeValues={":token": access_token, ":now": now},
+    )
+
+
+def get_user_notion_token(user_id: str) -> str | None:
+    """Return the user's stored Notion OAuth access token, or None if not connected."""
+    response = _get_table().get_item(
+        Key={"PK": f"USER#{user_id}", "SK": "USER"},
+        ProjectionExpression="notionAccessToken",
+    )
+    return response.get("Item", {}).get("notionAccessToken")
+
+
 def list_articles(limit: int = 50) -> list[dict]:
     """Scan and return published article metadata sorted by publishedAt desc."""
     response = _get_table().scan(

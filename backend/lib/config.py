@@ -10,6 +10,9 @@ def _required(key: str) -> str:
 
 class Config:
     notion_api_key: str = ""
+    notion_client_id: str = ""
+    notion_client_secret: str = ""
+    notion_redirect_uri: str = ""
     dynamodb_table_name: str = ""
     s3_bucket_name: str = ""
     s3_content_prefix: str = ""
@@ -20,8 +23,15 @@ class Config:
     cognito_region: str = ""
 
     def __init__(self) -> None:
-        # Notion — optional so auth-only routes work without it configured
+        # Notion legacy shared key — only used by the /v1/article legacy routes
         self.notion_api_key = os.environ.get("NOTION_API_KEY", "")
+
+        # Notion OAuth public integration credentials
+        self.notion_client_id = os.environ.get("NOTION_CLIENT_ID", "")
+        self.notion_client_secret = os.environ.get("NOTION_CLIENT_SECRET", "")
+        self.notion_redirect_uri = os.environ.get(
+            "NOTION_REDIRECT_URI", "http://localhost:8000/auth/notion/callback"
+        )
 
         self.dynamodb_table_name = _required("DYNAMODB_TABLE_NAME")
         self.s3_bucket_name = _required("S3_BUCKET_NAME")

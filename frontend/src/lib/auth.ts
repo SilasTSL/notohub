@@ -92,7 +92,11 @@ export async function authSignIn(email: string, password: string): Promise<void>
     // live session open). Sign out the stale session and retry.
     if (err.name === 'UserAlreadyAuthenticatedException') {
       await signOut()
-      await signIn({ username: email, password })
+      try {
+        await signIn({ username: email, password })
+      } catch (retryError) {
+        mapError(retryError)
+      }
       return
     }
     mapError(error)

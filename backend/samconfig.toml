@@ -1,0 +1,16 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "notohub-backend"
+
+[default.build.parameters]
+# Docker is required — builds inside an Amazon Linux container so that
+# PyJWT[crypto]'s native cryptography wheels compile for the Lambda runtime.
+use_container = true
+
+[default.deploy.parameters]
+capabilities   = "CAPABILITY_IAM"
+confirm_changeset = true
+region         = "ap-southeast-1"
+# SAM auto-creates and manages an S3 bucket for deployment artefacts.
+resolve_s3     = true

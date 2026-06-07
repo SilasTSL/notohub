@@ -2,29 +2,12 @@ from __future__ import annotations
 
 import re
 import uuid
-from typing import Callable
 
-from lib.config import config
 from lib.notion_to_html import (
     fetch_notion_page,
-    page_id_to_html,
     render_page_data,
     token_auth,
 )
-
-# ─── Auth singleton ──────────────────────────────────────────────────────────
-# Using token_auth for now (private integration token from env).
-# When moving to OAuth / public connections, swap this for your OAuth factory
-# and pass the user's access token instead.
-
-_auth_fn: Callable[[], dict] | None = None
-
-
-def _get_auth() -> Callable[[], dict]:
-    global _auth_fn
-    if _auth_fn is None:
-        _auth_fn = token_auth(config.notion_api_key)
-    return _auth_fn
 
 
 # ─── Property extractors ─────────────────────────────────────────────────────
@@ -112,34 +95,22 @@ def page_to_metadata(page: dict, existing_id: str | None = None) -> dict:
     }
 
 
-def page_to_html(page_id: str, author_name: str) -> str:
-    """
-    Fetch a Notion page's blocks and render to a styled HTML string.
-
-    Uses the current auth factory (token_auth for now; swap for OAuth later).
-    """
-    return page_id_to_html(page_id, _get_auth(), author=author_name)
-
-
 def fetch_page_for_publish(
     page_id: str,
+    access_token: str,
     existing_id: str | None = None,
     author_name: str | None = None,
 ) -> tuple[dict, str]:
     """
-    Fetch a Notion page and return (metadata, html) in a single API roundtrip.
+    Fetch a Notion page and return (metadata, html).
 
     Args:
-        page_id:     Notion page ID.
-        existing_id: Existing article ID to preserve (skips generating a new UUID).
-        author_name: Override the author shown in the rendered HTML. When set,
-                     this takes precedence over the Notion page's Author property
-                     (which defaults to "Unknown Author" for pages without one).
-
-    Returns:
-        Tuple of (metadata dict, rendered HTML string).
+        page_id:      Notion page ID.
+        access_token: Notion OAuth token for the user, or a private integration token.
+        existing_id:  Existing article ID to reuse (skips generating a new UUID).
+        author_name:  Override the author displayed in the rendered HTML.
     """
-    auth_fn = _get_auth()
+    auth_fn = token_auth(access_token)
     page_data = fetch_notion_page(page_id, auth_fn)
     metadata = page_to_metadata(page_data["meta"], existing_id=existing_id)
     display_author = author_name or metadata["author"]["name"]

@@ -2,6 +2,7 @@ import json
 import uuid
 from datetime import datetime, timezone
 
+from lib.config import config
 from lib.notion import fetch_page_for_publish
 from lib.notion_to_html import _extract_page_id
 from lib.dynamodb import get_article_by_id, put_article
@@ -105,7 +106,11 @@ def handle_publish(event: dict, article_id: str) -> dict:
 
     try:
         # Single Notion API roundtrip: fetches page metadata + blocks, renders HTML
-        metadata, html = fetch_page_for_publish(notion_page_id, existing_id=article_id)
+        metadata, html = fetch_page_for_publish(
+            notion_page_id,
+            access_token=config.notion_api_key,
+            existing_id=article_id,
+        )
     except Exception as exc:
         return server_error(exc)
 
