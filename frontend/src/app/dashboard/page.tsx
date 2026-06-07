@@ -1,30 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import Navbar from '@/components/Navbar'
 import ArticleRow from '@/components/ArticleRow'
 import PublishModal from '@/components/PublishModal'
+import { listArticles, deleteArticle } from '@/lib/api'
 import type { Article } from '@/types'
-
-const FAKE_ARTICLES: Article[] = [
-  {
-    title: 'Getting Started with Notion for Blogging',
-    slug: 'getting-started-notion-blogging',
-    publishedAt: 'Jun 1, 2025',
-  },
-  {
-    title: 'Building in Public: My 90-Day Journey',
-    slug: 'building-in-public-90-days',
-    publishedAt: 'May 22, 2025',
-  },
-  {
-    title: 'Why I Moved My Writing to Notion',
-    slug: 'why-i-moved-writing-to-notion',
-    publishedAt: 'May 10, 2025',
-  },
-]
 
 function Spinner() {
   return (
@@ -54,10 +37,33 @@ export default function DashboardPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [showModal, setShowModal] = useState(false)
+  const [articles, setArticles] = useState<Article[]>([])
+  const [articlesLoading, setArticlesLoading] = useState(true)
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
   }, [user, loading, router])
+
+  const loadArticles = useCallback(async () => {
+    setArticlesLoading(true)
+    try {
+      const data = await listArticles()
+      setArticles(data)
+    } catch {
+      // Leave the list empty on error — user can still publish
+    } finally {
+      setArticlesLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!loading && user) loadArticles()
+  }, [loading, user, loadArticles])
+
+  async function handleDeleteArticle(slug: string) {
+    await deleteArticle(slug)
+    setArticles((prev) => prev.filter((a) => a.slug !== slug))
+  }
 
   if (loading) {
     return (
@@ -172,9 +178,13 @@ export default function DashboardPage() {
 
             {/* Article list */}
             <div className="bg-white rounded-2xl border border-[#e6e6e6] px-6">
-              {FAKE_ARTICLES.length > 0 ? (
-                FAKE_ARTICLES.map((article) => (
-                  <ArticleRow key={article.slug} article={article} />
+              {articlesLoading ? (
+                <div className="py-20 flex justify-center">
+                  <Spinner />
+                </div>
+              ) : articles.length > 0 ? (
+                articles.map((article) => (
+                  <ArticleRow key={article.id} article={article} username={user.username} onDelete={handleDeleteArticle} />
                 ))
               ) : (
                 <div className="py-20 text-center">
@@ -213,6 +223,7 @@ export default function DashboardPage() {
         <PublishModal
           username={user.username}
           onClose={() => setShowModal(false)}
+          onPublished={loadArticles}
         />
       )}
     </div>

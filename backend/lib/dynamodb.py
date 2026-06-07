@@ -48,6 +48,11 @@ def put_article(record: dict) -> None:
     _get_table().put_item(Item=clean)
 
 
+def delete_article(article_id: str) -> None:
+    """Delete an article record by its ID."""
+    _get_table().delete_item(Key={"PK": f"ARTICLE#{article_id}", "SK": "ARTICLE"})
+
+
 def get_article_by_slug(slug: str) -> dict | None:
     """Fetch a raw article record by slug via GSI1."""
     response = _get_table().query(
@@ -55,6 +60,22 @@ def get_article_by_slug(slug: str) -> dict | None:
         KeyConditionExpression=Key("GSI1PK").eq(f"SLUG#{slug}")
         & Key("GSI1SK").eq("ARTICLE"),
         Limit=1,
+    )
+    items = response.get("Items", [])
+    return items[0] if items else None
+
+
+def get_user_article_by_slug(user_id: str, slug: str) -> dict | None:
+    """Fetch this user's article with the given slug, or None if it doesn't exist.
+
+    Queries GSI1 (slug index) and filters by userId so two users with the same
+    slug don't collide — slugs are only unique per user, not globally.
+    """
+    response = _get_table().query(
+        IndexName="GSI1",
+        KeyConditionExpression=Key("GSI1PK").eq(f"SLUG#{slug}")
+        & Key("GSI1SK").eq("ARTICLE"),
+        FilterExpression=Attr("userId").eq(user_id),
     )
     items = response.get("Items", [])
     return items[0] if items else None

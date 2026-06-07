@@ -76,6 +76,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):     self._dispatch("GET")
     def do_POST(self):    self._dispatch("POST")
+    def do_DELETE(self):  self._dispatch("DELETE")
     def do_OPTIONS(self): self._dispatch("OPTIONS")
 
     def log_message(self, fmt, *args):

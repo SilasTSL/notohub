@@ -19,10 +19,13 @@ from lib.response import no_content, not_found
 from handlers.articles import handle_list, handle_detail
 from handlers.article import handle_create, handle_publish
 from handlers.auth import handle_register
-from handlers.user_articles import handle_user_publish, handle_user_list
+from handlers.user_articles import handle_user_publish, handle_user_delete, handle_user_list
 
 # /articles/<slug>  — must not match "publish" as a slug for the POST route
 _ARTICLE_DETAIL_RE = re.compile(r"^/articles/([A-Za-z0-9][A-Za-z0-9\-]*)/?$")
+
+# /v1/articles/<slug>  — authenticated user article operations
+_USER_ARTICLE_RE = re.compile(r"^/v1/articles/([A-Za-z0-9][A-Za-z0-9\-]*)/?$")
 
 # /v1/article/<uuid>/publish
 _PUBLISH_RE = re.compile(r"^/v1/article/([A-Za-z0-9\-]+)/publish/?$")
@@ -47,6 +50,11 @@ def handler(event: dict[str, Any], context: Any) -> dict:
     # ── GET /v1/articles ────────────────────────────────────────────────────
     if method == "GET" and path == "/v1/articles":
         return handle_user_list(event)
+
+    # ── DELETE /v1/articles/{slug} ──────────────────────────────────────────
+    user_article_match = _USER_ARTICLE_RE.match(path)
+    if method == "DELETE" and user_article_match:
+        return handle_user_delete(event, user_article_match.group(1))
 
     # ── Legacy: POST /v1/article/{id}/publish ───────────────────────────────
     pub_match = _PUBLISH_RE.match(path)

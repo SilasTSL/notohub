@@ -37,7 +37,13 @@ export async function publishArticle(
     method: 'POST',
     body: JSON.stringify({ notionUrl, slug }),
   })
-  return handleResponse<{ url: string }>(res)
+  const body = await handleResponse<{ data: { url: string } }>(res)
+  return body.data
+}
+
+export async function deleteArticle(slug: string): Promise<void> {
+  const res = await authFetch(`${API_URL}/v1/articles/${slug}`, { method: 'DELETE' })
+  await handleResponse<{ message?: string }>(res)
 }
 
 export async function listArticles(): Promise<Article[]> {

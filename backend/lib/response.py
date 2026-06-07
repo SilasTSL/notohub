@@ -9,7 +9,7 @@ def _cors_headers() -> dict[str, str]:
     return {
         "Access-Control-Allow-Origin": config.allowed_origin,
         "Access-Control-Allow-Headers": "Content-Type,Authorization",
-        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
     }
 
 

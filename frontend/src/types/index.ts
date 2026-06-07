@@ -5,8 +5,10 @@ export interface AuthUser {
 }
 
 export interface Article {
+  id: string
   slug: string
   title: string
   publishedAt: string
+  excerpt?: string
   notionPageId?: string
 }

@@ -1,56 +1,85 @@
 'use client'
 
 import { useState } from 'react'
+import { publishArticle } from '@/lib/api'
 
 type PublishModalProps = {
   username: string
   onClose: () => void
+  onPublished: () => void
 }
 
-export default function PublishModal({ username, onClose }: PublishModalProps) {
+export default function PublishModal({ username, onClose, onPublished }: PublishModalProps) {
   const [notionUrl, setNotionUrl] = useState('')
   const [slug, setSlug] = useState('')
-  const [published, setPublished] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [errors, setErrors] = useState<{ notionUrl?: string; slug?: string }>({})
 
+  const published = publishedUrl !== null
   const displaySlug = slug || 'my-article-title'
-  const liveUrl = `notohub.com/${username}/${displaySlug}`
+  const previewUrl = `notohub.com/${username}/${displaySlug}`
+
+  function handleSlugChange(value: string) {
+    const cleaned = value
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+    setSlug(cleaned)
+    setErrors((prev) => ({ ...prev, slug: undefined }))
+  }
 
   function validate() {
     const errs: { notionUrl?: string; slug?: string } = {}
     if (!notionUrl.trim()) errs.notionUrl = 'Notion page URL is required.'
     if (!slug.trim()) errs.slug = 'Slug is required.'
+    else if (slug.length < 3) errs.slug = 'Slug must be at least 3 characters.'
     return errs
   }
 
-  function handlePublish() {
+  async function handlePublish() {
     const errs = validate()
     if (Object.keys(errs).length) {
       setErrors(errs)
       return
     }
-    setPublished(true)
+    setLoading(true)
+    setError(null)
+    try {
+      const result = await publishArticle(notionUrl, slug)
+      setPublishedUrl(result.url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Publishing failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(`https://${liveUrl}`)
+    if (!publishedUrl) return
+    await navigator.clipboard.writeText(publishedUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  function handleClose() {
+    if (published) onPublished()
+    onClose()
   }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-[#6b6b6b] hover:text-[#1a1a1a] hover:bg-[#f9f9f9] rounded-full transition-colors text-lg leading-none"
           aria-label="Close"
         >
@@ -62,6 +91,12 @@ export default function PublishModal({ username, onClose }: PublishModalProps) {
             <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-6">
               Publish New Article
             </h2>
+
+            {error && (
+              <div className="mb-5 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+                {error}
+              </div>
+            )}
 
             <div className="space-y-5">
               <div>
@@ -76,14 +111,19 @@ export default function PublishModal({ username, onClose }: PublishModalProps) {
                     setErrors((prev) => ({ ...prev, notionUrl: undefined }))
                   }}
                   placeholder="https://www.notion.so/..."
-                  className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors placeholder:text-[#b0b0b0] focus:border-[#1a8917] focus:ring-2 focus:ring-[#1a8917]/10 ${
+                  disabled={loading}
+                  className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors placeholder:text-[#b0b0b0] focus:border-[#1a8917] focus:ring-2 focus:ring-[#1a8917]/10 disabled:opacity-60 ${
                     errors.notionUrl
                       ? 'border-red-400 bg-red-50'
                       : 'border-[#e6e6e6] bg-white'
                   }`}
                 />
-                {errors.notionUrl && (
+                {errors.notionUrl ? (
                   <p className="text-xs text-red-500 mt-1">{errors.notionUrl}</p>
+                ) : (
+                  <p className="text-xs text-[#6b6b6b] mt-1.5">
+                    Make sure this page is shared with the NotoHub integration in Notion.
+                  </p>
                 )}
               </div>
 
@@ -94,12 +134,10 @@ export default function PublishModal({ username, onClose }: PublishModalProps) {
                 <input
                   type="text"
                   value={slug}
-                  onChange={(e) => {
-                    setSlug(e.target.value)
-                    setErrors((prev) => ({ ...prev, slug: undefined }))
-                  }}
+                  onChange={(e) => handleSlugChange(e.target.value)}
                   placeholder="my-article-title"
-                  className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors font-mono placeholder:text-[#b0b0b0] focus:border-[#1a8917] focus:ring-2 focus:ring-[#1a8917]/10 ${
+                  disabled={loading}
+                  className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors font-mono placeholder:text-[#b0b0b0] focus:border-[#1a8917] focus:ring-2 focus:ring-[#1a8917]/10 disabled:opacity-60 ${
                     errors.slug
                       ? 'border-red-400 bg-red-50'
                       : 'border-[#e6e6e6] bg-white'
@@ -109,7 +147,7 @@ export default function PublishModal({ username, onClose }: PublishModalProps) {
                   <p className="text-xs text-red-500 mt-1">{errors.slug}</p>
                 ) : (
                   <p className="text-xs text-[#1a8917] mt-1.5 font-mono">
-                    → {liveUrl}
+                    → {previewUrl}
                   </p>
                 )}
               </div>
@@ -117,9 +155,16 @@ export default function PublishModal({ username, onClose }: PublishModalProps) {
 
             <button
               onClick={handlePublish}
-              className="mt-6 w-full bg-[#1a8917] hover:bg-[#157313] text-white font-medium py-3 rounded-lg transition-colors text-sm"
+              disabled={loading}
+              className="mt-6 w-full bg-[#1a8917] hover:bg-[#157313] disabled:opacity-70 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
             >
-              Publish Article
+              {loading && (
+                <svg className="animate-spin h-4 w-4 text-white shrink-0" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {loading ? 'Publishing…' : 'Publish Article'}
             </button>
           </>
         ) : (
@@ -134,7 +179,7 @@ export default function PublishModal({ username, onClose }: PublishModalProps) {
 
             <div className="flex items-center gap-3 bg-[#f9f9f9] border border-[#e6e6e6] rounded-lg px-4 py-3 mb-6">
               <span className="text-sm text-[#1a8917] flex-1 text-left break-all font-mono">
-                https://{liveUrl}
+                {publishedUrl}
               </span>
               <button
                 onClick={handleCopy}
@@ -145,7 +190,7 @@ export default function PublishModal({ username, onClose }: PublishModalProps) {
             </div>
 
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-full border border-[#e6e6e6] text-[#1a1a1a] font-medium py-3 rounded-lg hover:bg-[#f9f9f9] transition-colors text-sm"
             >
               Close

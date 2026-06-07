@@ -6,8 +6,8 @@ from lib.cognito import get_verified_user
 from lib.users import get_user
 from lib.notion import fetch_page_for_publish
 from lib.notion_to_html import _extract_page_id
-from lib.s3 import put_article_html
-from lib.dynamodb import put_article, list_user_articles
+from lib.s3 import put_article_html, delete_article_html
+from lib.dynamodb import put_article, delete_article, list_user_articles, get_user_article_by_slug
 from lib.response import ok, bad_request, unauthorized, not_found, server_error
 
 
@@ -59,7 +59,7 @@ def handle_user_publish(event: dict) -> dict:
         username = user_record.get("username", "unknown")
 
     try:
-        metadata, html = fetch_page_for_publish(notion_page_id)
+        metadata, html = fetch_page_for_publish(notion_page_id, author_name=username)
     except Exception as exc:
         return server_error(exc)
 
@@ -71,7 +71,10 @@ def handle_user_publish(event: dict) -> dict:
     except Exception as exc:
         return server_error(exc)
 
-    article_id = str(uuid.uuid4())
+    # Reuse the existing article ID if this user already published under this slug
+    # so that put_article overwrites the record rather than creating a duplicate.
+    existing = get_user_article_by_slug(user_sub, slug)
+    article_id = existing["id"] if existing else str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
 
     record = {
@@ -109,6 +112,30 @@ def handle_user_publish(event: dict) -> dict:
 
     article_url = f"https://www.notohub.com/{username}/{slug}/"
     return ok({"url": article_url}, status_code=201)
+
+
+def handle_user_delete(event: dict, slug: str) -> dict:
+    """DELETE /v1/articles/{slug} — delete the caller's article by slug."""
+    try:
+        user_info = get_verified_user(event)
+    except ValueError as exc:
+        return unauthorized(str(exc))
+
+    article = get_user_article_by_slug(user_info["sub"], slug)
+    if not article:
+        return not_found("Article not found")
+
+    try:
+        delete_article_html(article["s3Key"])
+    except Exception as exc:
+        return server_error(exc)
+
+    try:
+        delete_article(article["id"])
+    except Exception as exc:
+        return server_error(exc)
+
+    return ok({"message": "Article deleted"})
 
 
 def handle_user_list(event: dict) -> dict:
