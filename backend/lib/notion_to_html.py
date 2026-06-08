@@ -425,6 +425,53 @@ def _estimate_read_time(blocks: list) -> int:
 # 5.  HTML TEMPLATE
 # ---------------------------------------------------------------------------
 
+_MORE_FROM_TEMPLATE = """
+  <section class="more-from">
+    <div class="more-from-inner">
+      <p class="more-from-heading">More from __AUTHOR_NAME__</p>
+      <div id="more-from-list"><p class="more-from-meta">Loading&hellip;</p></div>
+    </div>
+  </section>
+
+  <script>
+    (function() {
+      var AUTHOR = "__AUTHOR_SLUG__";
+      var SLUG   = "__CURRENT_SLUG__";
+      var API    = "__API_BASE_URL__";
+
+      fetch(API + "/users/" + AUTHOR + "/articles")
+        .then(function(r) { return r.json(); })
+        .then(function(body) {
+          var articles = (body.data || [])
+            .filter(function(a) { return a.slug !== SLUG; })
+            .slice(0, 3);
+          var el = document.getElementById("more-from-list");
+          if (!el) return;
+          if (!articles.length) {
+            el.innerHTML = '<p class="more-from-meta">No other articles yet.</p>';
+            return;
+          }
+          el.innerHTML = articles.map(function(a) {
+            var date = "";
+            try {
+              date = new Date(a.publishedAt).toLocaleDateString("en-US", {month:"short",day:"numeric",year:"numeric"});
+            } catch(e) {}
+            return (
+              '<a class="more-from-card" href="/' + AUTHOR + '/' + a.slug + '/">' +
+                '<span class="more-from-card-title">' + a.title + '</span>' +
+                '<span class="more-from-card-date">'  + date    + '</span>' +
+              '</a>'
+            );
+          }).join("");
+        })
+        .catch(function() {
+          var el = document.getElementById("more-from-list");
+          if (el) el.innerHTML = "";
+        });
+    })();
+  </script>
+"""
+
 _HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -694,6 +741,41 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       flex-wrap: wrap; gap: 0.5rem;
     }}
 
+    /* ── More from author ── */
+    .more-from {{
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border);
+      padding: 3rem 1.5rem;
+    }}
+    .more-from-inner {{
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }}
+    .more-from-heading {{
+      font-family: var(--sans); font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink-muted); margin-bottom: 1.5rem;
+    }}
+    .more-from-card {{
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 1rem; padding: 1.1rem 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none; color: inherit;
+    }}
+    .more-from-card:last-child {{ border-bottom: none; }}
+    .more-from-card:hover .more-from-card-title {{ color: var(--accent); }}
+    .more-from-card-title {{
+      font-family: var(--serif); font-size: 1rem; font-weight: 600;
+      line-height: 1.3; transition: color 0.15s;
+    }}
+    .more-from-card-date {{
+      font-family: var(--sans); font-size: 0.82rem;
+      color: var(--ink-muted); white-space: nowrap; flex-shrink: 0;
+    }}
+    .more-from-meta {{
+      font-family: var(--sans); font-size: 0.88rem; color: var(--ink-muted);
+    }}
+
     /* ── Responsive ── */
     @media (max-width: 600px) {{
       article {{ padding: 2rem 1.2rem 4rem; }}
@@ -735,6 +817,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     {body}
   </article>
 
+{more_from_html}
   <footer>
     <span>Written with Notion</span>
     <span>Last edited {edited_str}</span>
@@ -754,7 +837,13 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 """
 
 
-def _render_html(page_data: dict, author: str) -> str:
+def _render_html(
+    page_data: dict,
+    author: str,
+    author_slug: str = "",
+    current_slug: str = "",
+    api_base_url: str = "",
+) -> str:
     """Assembles the final HTML string from page data. Returns HTML string."""
     meta_raw = page_data["meta"]
     blocks   = page_data["blocks"]
@@ -786,6 +875,16 @@ def _render_html(page_data: dict, author: str) -> str:
     edited_str = _fmt_date(m["edited"]) if m["edited"] else date_str
     body = _blocks_to_html(blocks)
 
+    more_from_html = ""
+    if author_slug and api_base_url:
+        more_from_html = (
+            _MORE_FROM_TEMPLATE
+            .replace("__AUTHOR_NAME__", author_name)
+            .replace("__AUTHOR_SLUG__", author_slug)
+            .replace("__CURRENT_SLUG__", current_slug)
+            .replace("__API_BASE_URL__", api_base_url)
+        )
+
     return _HTML_TEMPLATE.format(
         title=m["title"],
         cover_html=cover_html,
@@ -796,6 +895,7 @@ def _render_html(page_data: dict, author: str) -> str:
         edited_str=edited_str,
         read_time=read_time,
         body=body,
+        more_from_html=more_from_html,
     )
 
 
@@ -803,13 +903,30 @@ def _render_html(page_data: dict, author: str) -> str:
 # 6.  PUBLIC ENTRY POINTS
 # ---------------------------------------------------------------------------
 
-def render_page_data(page_data: dict, author: str) -> str:
+def render_page_data(
+    page_data: dict,
+    author: str,
+    author_slug: str = "",
+    current_slug: str = "",
+    api_base_url: str = "",
+) -> str:
     """
     Render pre-fetched page data to HTML without making another API call.
-    Use this when you already have the result of fetch_notion_page() and
-    want to avoid a redundant round-trip to Notion.
+
+    Args:
+        page_data:    Result of fetch_notion_page().
+        author:       Display name shown in the article byline.
+        author_slug:  NotoHub username — used to build the "More from" section.
+        current_slug: Slug of this article — excluded from the "More from" list.
+        api_base_url: Base URL of the NotoHub API injected into the "More from" script.
     """
-    return _render_html(page_data, author=author)
+    return _render_html(
+        page_data,
+        author=author,
+        author_slug=author_slug,
+        current_slug=current_slug,
+        api_base_url=api_base_url,
+    )
 
 
 def page_id_to_html(

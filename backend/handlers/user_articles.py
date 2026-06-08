@@ -69,6 +69,8 @@ def handle_user_publish(event: dict) -> dict:
             notion_page_id,
             access_token=notion_token,
             author_name=username,
+            author_slug=username,
+            current_slug=slug,
         )
     except Exception as exc:
         return server_error(exc)

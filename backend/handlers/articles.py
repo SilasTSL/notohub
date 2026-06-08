@@ -1,8 +1,8 @@
 import json
 
-from lib.dynamodb import get_article_by_slug, list_articles
+from lib.dynamodb import get_article_by_slug, list_articles, list_articles_by_author
 from lib.s3 import get_article_html
-from lib.response import ok, not_found, server_error
+from lib.response import ok, public_ok, not_found, server_error
 
 
 def handle_list(event: dict) -> dict:
@@ -33,6 +33,15 @@ def handle_list(event: dict) -> dict:
         })
     except Exception as exc:
         return server_error(exc)
+
+
+def handle_user_articles_public(event: dict, username: str) -> dict:
+    """GET /users/{username}/articles — public list of a user's published articles."""
+    try:
+        articles = list_articles_by_author(username)
+    except Exception as exc:
+        return server_error(exc)
+    return public_ok(articles)
 
 
 def handle_detail(event: dict, slug: str) -> dict:

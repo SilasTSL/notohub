@@ -19,7 +19,7 @@ import re
 from typing import Any
 
 from lib.response import no_content, not_found
-from handlers.articles import handle_list, handle_detail
+from handlers.articles import handle_list, handle_detail, handle_user_articles_public
 from handlers.article import handle_create, handle_publish
 from handlers.auth import handle_register, handle_notion_connect, handle_notion_callback
 from handlers.user_articles import handle_user_publish, handle_user_delete, handle_user_list
@@ -32,6 +32,9 @@ _USER_ARTICLE_RE = re.compile(r"^/v1/articles/([A-Za-z0-9][A-Za-z0-9\-]*)/?$")
 
 # /v1/article/<uuid>/publish
 _PUBLISH_RE = re.compile(r"^/v1/article/([A-Za-z0-9\-]+)/publish/?$")
+
+# /users/<username>/articles — public per-author article list
+_USER_PUBLIC_ARTICLES_RE = re.compile(r"^/users/([A-Za-z0-9][A-Za-z0-9\-]*)/articles/?$")
 
 
 def handler(event: dict[str, Any], context: Any) -> dict:
@@ -80,6 +83,11 @@ def handler(event: dict[str, Any], context: Any) -> dict:
     slug_match = _ARTICLE_DETAIL_RE.match(path)
     if method == "GET" and slug_match:
         return handle_detail(event, slug_match.group(1))
+
+    # ── GET /users/{username}/articles ─────────────────────────────────────────
+    user_pub_match = _USER_PUBLIC_ARTICLES_RE.match(path)
+    if method == "GET" and user_pub_match:
+        return handle_user_articles_public(event, user_pub_match.group(1))
 
     # ── GET /articles ───────────────────────────────────────────────────────
     if method == "GET" and path in ("/articles", "/"):

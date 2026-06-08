@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import uuid
 
+from lib.config import config
 from lib.notion_to_html import (
     fetch_notion_page,
     render_page_data,
@@ -100,6 +101,8 @@ def fetch_page_for_publish(
     access_token: str,
     existing_id: str | None = None,
     author_name: str | None = None,
+    author_slug: str = "",
+    current_slug: str = "",
 ) -> tuple[dict, str]:
     """
     Fetch a Notion page and return (metadata, html).
@@ -109,10 +112,18 @@ def fetch_page_for_publish(
         access_token: Notion OAuth token for the user, or a private integration token.
         existing_id:  Existing article ID to reuse (skips generating a new UUID).
         author_name:  Override the author displayed in the rendered HTML.
+        author_slug:  NotoHub username — embedded in the "More from" section.
+        current_slug: Slug of this article — excluded from the "More from" list.
     """
     auth_fn = token_auth(access_token)
     page_data = fetch_notion_page(page_id, auth_fn)
     metadata = page_to_metadata(page_data["meta"], existing_id=existing_id)
     display_author = author_name or metadata["author"]["name"]
-    html = render_page_data(page_data, author=display_author)
+    html = render_page_data(
+        page_data,
+        author=display_author,
+        author_slug=author_slug,
+        current_slug=current_slug,
+        api_base_url=config.public_api_url,
+    )
     return metadata, html

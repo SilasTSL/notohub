@@ -10,6 +10,7 @@ def _required(key: str) -> str:
 
 class Config:
     notion_api_key: str = ""
+    public_api_url: str = ""
     notion_client_id: str = ""
     notion_client_secret: str = ""
     notion_redirect_uri: str = ""
@@ -38,6 +39,7 @@ class Config:
         self.s3_content_prefix = os.environ.get("S3_CONTENT_PREFIX", "articles/")
         self.aws_region = os.environ.get("AWS_REGION", "ap-southeast-1")
         self.allowed_origin = os.environ.get("ALLOWED_ORIGIN", "*")
+        self.public_api_url = os.environ.get("PUBLIC_API_URL", "http://localhost:8000")
 
         # Cognito — optional so existing routes keep working if not yet set;
         # lib/cognito.py raises a clear EnvironmentError at call time if missing.

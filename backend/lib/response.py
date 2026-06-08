@@ -71,6 +71,20 @@ def bad_request(message: str) -> dict:
     }
 
 
+def public_ok(data: Any, status_code: int = 200) -> dict:
+    """Like ok() but with Access-Control-Allow-Origin: * for public read endpoints."""
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Methods": "GET,OPTIONS",
+        },
+        "body": _json({"success": True, "data": data}),
+    }
+
+
 def redirect(url: str) -> dict:
     return {"statusCode": 302, "headers": {"Location": url}, "body": ""}
 

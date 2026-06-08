@@ -35,6 +35,10 @@ Parameters:
     Type: String
     Default: https://api.notohub.com/auth/notion/callback
     Description: OAuth redirect URI registered with Notion (production URL)
+  PublicApiUrl:
+    Type: String
+    Default: https://api.notohub.com
+    Description: Public API base URL embedded in generated article HTML for the "More from" fetch
 
 # ── Globals ───────────────────────────────────────────────────────────────────
 Globals:
@@ -72,6 +76,7 @@ Resources:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPoolId
           COGNITO_APP_CLIENT_ID: !Ref CognitoAppClientId
           COGNITO_REGION: !Ref CognitoRegion
+          PUBLIC_API_URL: !Ref PublicApiUrl
           NOTION_CLIENT_ID: !Ref NotionClientId
           NOTION_CLIENT_SECRET: !Ref NotionClientSecret
           NOTION_REDIRECT_URI: !Ref NotionRedirectUri

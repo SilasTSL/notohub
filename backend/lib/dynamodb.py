@@ -119,6 +119,18 @@ def get_user_notion_token(user_id: str) -> str | None:
     return response.get("Item", {}).get("notionAccessToken")
 
 
+def list_articles_by_author(author_name: str) -> list[dict]:
+    """Return all published articles by a given author, newest first."""
+    response = _get_table().scan(
+        FilterExpression=Attr("SK").eq("ARTICLE")
+            & Attr("authorName").eq(author_name)
+            & Attr("status").eq("published"),
+    )
+    items = [_record_to_metadata(item) for item in response.get("Items", [])]
+    items.sort(key=lambda a: a["publishedAt"], reverse=True)
+    return items
+
+
 def list_articles(limit: int = 50) -> list[dict]:
     """Scan and return published article metadata sorted by publishedAt desc."""
     response = _get_table().scan(
