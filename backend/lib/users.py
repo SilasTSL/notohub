@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Attr
 
 from lib.dynamodb import _get_table
 
@@ -38,3 +39,50 @@ def get_user(sub: str) -> dict | None:
         Key={"PK": f"USER#{sub}", "SK": "USER"}
     )
     return response.get("Item")
+
+
+def get_user_by_username(username: str) -> dict | None:
+    """Scan for a user record by username. Returns None if not found."""
+    response = _get_table().scan(
+        FilterExpression=Attr("SK").eq("USER") & Attr("username").eq(username)
+    )
+    items = response.get("Items", [])
+    return items[0] if items else None
+
+
+def update_user_profile(
+    sub: str,
+    bio: str | None = None,
+    avatar_url: str | None = None,
+    social_links: dict | None = None,
+) -> None:
+    """Partial update of profile fields. Only overwrites the fields provided."""
+    now = datetime.now(timezone.utc).isoformat()
+    update_parts = ["updatedAt = :now"]
+    expr_values: dict = {":now": now}
+
+    if bio is not None:
+        update_parts.append("bio = :bio")
+        expr_values[":bio"] = bio
+    if avatar_url is not None:
+        update_parts.append("avatarUrl = :avatarUrl")
+        expr_values[":avatarUrl"] = avatar_url
+    if social_links is not None:
+        update_parts.append("socialLinks = :socialLinks")
+        expr_values[":socialLinks"] = social_links
+
+    _get_table().update_item(
+        Key={"PK": f"USER#{sub}", "SK": "USER"},
+        UpdateExpression="SET " + ", ".join(update_parts),
+        ExpressionAttributeValues=expr_values,
+    )
+
+
+def set_profile_published(sub: str) -> None:
+    """Mark the user's profile as published."""
+    now = datetime.now(timezone.utc).isoformat()
+    _get_table().update_item(
+        Key={"PK": f"USER#{sub}", "SK": "USER"},
+        UpdateExpression="SET profilePublished = :t, updatedAt = :now",
+        ExpressionAttributeValues={":t": True, ":now": now},
+    )

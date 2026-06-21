@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import Navbar from '@/components/Navbar'
 import ArticleRow from '@/components/ArticleRow'
 import PublishModal from '@/components/PublishModal'
-import { listArticles, deleteArticle } from '@/lib/api'
+import { listArticles, deleteArticle, getProfile } from '@/lib/api'
 import type { Article } from '@/types'
 
 function Spinner() {
@@ -39,6 +39,7 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false)
   const [articles, setArticles] = useState<Article[]>([])
   const [articlesLoading, setArticlesLoading] = useState(true)
+  const [profilePublished, setProfilePublished] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
@@ -57,7 +58,12 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
-    if (!loading && user) loadArticles()
+    if (!loading && user) {
+      loadArticles()
+      getProfile()
+        .then((p) => setProfilePublished(p.profilePublished))
+        .catch(() => setProfilePublished(false))
+    }
   }, [loading, user, loadArticles])
 
   async function handleDeleteArticle(slug: string) {
@@ -120,6 +126,28 @@ export default function DashboardPage() {
                     />
                   </svg>
                   My Articles
+                </a>
+                <a
+                  href="/profile"
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[#6b6b6b] hover:bg-[#f9f9f9] text-sm transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  Set Up Profile
+                  {profilePublished === false && (
+                    <span className="ml-auto w-2 h-2 rounded-full bg-[#1a8917] shrink-0" />
+                  )}
                 </a>
                 <a
                   href="#"

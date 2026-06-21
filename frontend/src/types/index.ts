@@ -12,3 +12,14 @@ export interface Article {
   excerpt?: string
   notionPageId?: string
 }
+
+export interface UserProfile {
+  bio?: string
+  avatarUrl?: string
+  socialLinks?: {
+    twitter?: string
+    github?: string
+    linkedin?: string
+  }
+  profilePublished: boolean
+}

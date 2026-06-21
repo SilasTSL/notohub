@@ -11,8 +11,12 @@ Routes:
   DELETE /v1/articles/{slug}              → delete a user's article (requires auth)
   GET  /articles                          → list all published article metadata (public)
   GET  /articles/{slug}                   → article detail + HTML content (public)
+  GET  /articles/public                   → public article list by username (public, CORS *)
   POST /v1/article                        → create a new article draft (legacy)
   POST /v1/article/{articleId}/publish    → render from Notion and host on S3 (legacy)
+  GET  /profile                           → get caller's profile fields (requires auth)
+  POST /profile                           → save profile + publish shell to S3 (requires auth)
+  POST /profile/avatar-upload-url         → generate pre-signed PUT URL (requires auth)
   OPTIONS *                               → CORS preflight
 """
 import re
@@ -23,6 +27,12 @@ from handlers.articles import handle_list, handle_detail, handle_user_articles_p
 from handlers.article import handle_create, handle_publish
 from handlers.auth import handle_register, handle_notion_connect, handle_notion_callback
 from handlers.user_articles import handle_user_publish, handle_user_delete, handle_user_list
+from handlers.profile import (
+    handle_get_profile,
+    handle_save_profile,
+    handle_avatar_upload_url,
+    handle_public_articles,
+)
 
 # /articles/<slug>  — must not match "publish" as a slug for the POST route
 _ARTICLE_DETAIL_RE = re.compile(r"^/articles/([A-Za-z0-9][A-Za-z0-9\-]*)/?$")
@@ -78,6 +88,22 @@ def handler(event: dict[str, Any], context: Any) -> dict:
     # ── Legacy: POST /v1/article ────────────────────────────────────────────
     if method == "POST" and path == "/v1/article":
         return handle_create(event)
+
+    # ── GET /profile ────────────────────────────────────────────────────────
+    if method == "GET" and path == "/profile":
+        return handle_get_profile(event)
+
+    # ── POST /profile/avatar-upload-url ─────────────────────────────────────
+    if method == "POST" and path == "/profile/avatar-upload-url":
+        return handle_avatar_upload_url(event)
+
+    # ── POST /profile ────────────────────────────────────────────────────────
+    if method == "POST" and path == "/profile":
+        return handle_save_profile(event)
+
+    # ── GET /articles/public — must come before the slug regex ───────────────
+    if method == "GET" and path == "/articles/public":
+        return handle_public_articles(event)
 
     # ── GET /articles/{slug} ────────────────────────────────────────────────
     slug_match = _ARTICLE_DETAIL_RE.match(path)

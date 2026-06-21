@@ -101,3 +101,47 @@ def delete_article_html(s3_key: str) -> None:
         Bucket=config.s3_bucket_name,
         Key=s3_key,
     )
+
+
+_CONTENT_TYPE_TO_EXT: dict[str, str] = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+}
+
+ALLOWED_AVATAR_CONTENT_TYPES = frozenset(_CONTENT_TYPE_TO_EXT)
+
+
+def generate_presigned_put_url(username: str, content_type: str) -> tuple[str, str]:
+    """
+    Generate a pre-signed PUT URL for direct avatar upload from the browser.
+
+    Returns (upload_url, public_url) where public_url is the final URL after
+    the client completes the upload.
+    """
+    ext = _CONTENT_TYPE_TO_EXT[content_type]
+    key = f"{username}/avatar.{ext}"
+    upload_url: str = _get_client().generate_presigned_url(
+        "put_object",
+        Params={
+            "Bucket": config.s3_bucket_name,
+            "Key": key,
+            "ContentType": content_type,
+        },
+        ExpiresIn=300,
+    )
+    public_url = f"https://www.notohub.com/{key}"
+    return upload_url, public_url
+
+
+def put_profile_html(username: str, html: str) -> str:
+    """Upload profile index HTML to S3 at {username}/index.html."""
+    key = f"{username}/index.html"
+    _get_client().put_object(
+        Bucket=config.s3_bucket_name,
+        Key=key,
+        Body=html.encode("utf-8"),
+        ContentType="text/html; charset=utf-8",
+        CacheControl="public, max-age=300",
+    )
+    return key
