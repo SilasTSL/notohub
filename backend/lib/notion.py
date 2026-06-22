@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import uuid
+import urllib.request
 
 from lib.config import config
 from lib.notion_to_html import (
@@ -73,6 +74,66 @@ def _cover_url(page: dict) -> str | None:
     return None
 
 
+# ─── Image helpers ───────────────────────────────────────────────────────────
+
+def _collect_image_blocks(blocks: list) -> list[dict]:
+    """Recursively collect all image blocks from the fetched block tree."""
+    images = []
+    for block in blocks:
+        if block.get("type") == "image":
+            images.append(block)
+        images.extend(_collect_image_blocks(block.get("_children", [])))
+    return images
+
+
+def _get_image_url(block: dict) -> str | None:
+    """Extract the source URL from an image block (handles file and external types)."""
+    data = block.get("image", {})
+    img_type = data.get("type", "")
+    return data.get(img_type, {}).get("url")
+
+
+def _download_image(url: str) -> tuple[bytes, str] | None:
+    """
+    Download an image and return (bytes, content_type).
+    Returns None on any network or HTTP error so callers can skip gracefully.
+    """
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Notohub/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            content_type = resp.headers.get("Content-Type", "image/jpeg").split(";")[0].strip()
+            return resp.read(), content_type
+    except Exception:
+        return None
+
+
+def _upload_article_images(blocks: list, username: str, slug: str) -> dict[str, str]:
+    """
+    Download all image blocks and upload them to S3.
+    Returns a mapping of {block_id: s3_public_url} for successful uploads.
+    Failed downloads/uploads are silently skipped — the renderer falls back
+    to the original Notion URL so a single bad image doesn't break the publish.
+    """
+    from lib.s3 import put_article_image
+
+    url_map: dict[str, str] = {}
+    for block in _collect_image_blocks(blocks):
+        block_id = block.get("id", "")
+        notion_url = _get_image_url(block)
+        if not notion_url or not block_id:
+            continue
+        result = _download_image(notion_url)
+        if result is None:
+            continue
+        image_data, content_type = result
+        try:
+            s3_url = put_article_image(username, slug, block_id, image_data, content_type)
+            url_map[block_id] = s3_url
+        except Exception:
+            pass
+    return url_map
+
+
 # ─── Public API ──────────────────────────────────────────────────────────────
 
 def page_to_metadata(page: dict, existing_id: str | None = None) -> dict:
@@ -119,11 +180,19 @@ def fetch_page_for_publish(
     page_data = fetch_notion_page(page_id, auth_fn)
     metadata = page_to_metadata(page_data["meta"], existing_id=existing_id)
     display_author = author_name or metadata["author"]["name"]
+
+    image_url_map = _upload_article_images(
+        page_data["blocks"],
+        username=author_slug or "unknown",
+        slug=current_slug or page_id,
+    )
+
     html = render_page_data(
         page_data,
         author=display_author,
         author_slug=author_slug,
         current_slug=current_slug,
         api_base_url=config.public_api_url,
+        image_url_map=image_url_map,
     )
     return metadata, html

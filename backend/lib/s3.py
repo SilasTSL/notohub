@@ -111,6 +111,43 @@ _CONTENT_TYPE_TO_EXT: dict[str, str] = {
 
 ALLOWED_AVATAR_CONTENT_TYPES = frozenset(_CONTENT_TYPE_TO_EXT)
 
+_IMAGE_CONTENT_TYPE_TO_EXT: dict[str, str] = {
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "image/svg+xml": "svg",
+}
+
+
+def put_article_image(
+    username: str,
+    slug: str,
+    block_id: str,
+    image_data: bytes,
+    content_type: str,
+) -> str:
+    """
+    Upload an article inline image to S3 and return its public URL.
+
+    Stores at: s3://<bucket>/{username}/{slug}/images/{block_id}.{ext}
+    Re-publishing overwrites the same key (deterministic, no orphans).
+    """
+    ext = _IMAGE_CONTENT_TYPE_TO_EXT.get(content_type, "jpg")
+    clean_id = block_id.replace("-", "")
+    key = f"{_slugify(username)}/{slug}/images/{clean_id}.{ext}"
+
+    _get_client().put_object(
+        Bucket=config.s3_bucket_name,
+        Key=key,
+        Body=image_data,
+        ContentType=content_type,
+        CacheControl="public, max-age=31536000",
+    )
+
+    return f"https://www.notohub.com/{key}"
+
 
 def generate_presigned_put_url(username: str, content_type: str) -> tuple[str, str]:
     """

@@ -208,7 +208,7 @@ def _rich_text_to_html(rich_texts: list) -> str:
     return "".join(parts)
 
 
-def _list_item_to_html(block: dict, tag: str, depth: int) -> str:
+def _list_item_to_html(block: dict, tag: str, depth: int, image_url_map: dict | None = None) -> str:
     btype = block.get("type", "")
     data = block.get(btype, {})
     html_text = _rich_text_to_html(data.get("rich_text", []))
@@ -216,13 +216,13 @@ def _list_item_to_html(block: dict, tag: str, depth: int) -> str:
 
     inner = html_text
     if children:
-        inner += "\n" + _blocks_to_html(children, depth=depth + 1)
+        inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
 
     indent = "  " * depth
     return f"{indent}<li>{inner}</li>\n"
 
 
-def _block_to_html(block: dict, depth: int = 0) -> str:
+def _block_to_html(block: dict, depth: int = 0, image_url_map: dict | None = None) -> str:
     """Converts a single Notion block dict to an HTML string."""
     btype = block.get("type", "")
     data = block.get(btype, {})
@@ -234,7 +234,7 @@ def _block_to_html(block: dict, depth: int = 0) -> str:
     if btype == "paragraph":
         inner = html_text or "&nbsp;"
         if children:
-            inner += "\n" + _blocks_to_html(children, depth=depth + 1)
+            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
         return f"{indent}<p>{inner}</p>\n"
 
     elif btype == "heading_1":
@@ -248,17 +248,17 @@ def _block_to_html(block: dict, depth: int = 0) -> str:
 
     elif btype in ("bulleted_list_item", "numbered_list_item"):
         tag = "ul" if btype == "bulleted_list_item" else "ol"
-        return _list_item_to_html(block, tag, depth)
+        return _list_item_to_html(block, tag, depth, image_url_map=image_url_map)
 
     elif btype == "to_do":
         checked = "checked" if data.get("checked") else ""
         inner = f'<input type="checkbox" {checked} disabled> {html_text}'
         if children:
-            inner += "\n" + _blocks_to_html(children, depth=depth + 1)
+            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
         return f'{indent}<label class="todo">{inner}</label>\n'
 
     elif btype == "toggle":
-        children_html = _blocks_to_html(children, depth=depth + 1) if children else ""
+        children_html = _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map) if children else ""
         return (f'{indent}<details class="toggle">\n'
                 f'{indent}  <summary>{html_text}</summary>\n'
                 f'{children_html}'
@@ -277,7 +277,7 @@ def _block_to_html(block: dict, depth: int = 0) -> str:
     elif btype == "quote":
         inner = html_text
         if children:
-            inner += "\n" + _blocks_to_html(children, depth=depth + 1)
+            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
         return f'{indent}<blockquote>{inner}</blockquote>\n'
 
     elif btype == "callout":
@@ -286,7 +286,7 @@ def _block_to_html(block: dict, depth: int = 0) -> str:
         bg = data.get("color", "gray_background")
         inner = html_text
         if children:
-            inner += "\n" + _blocks_to_html(children, depth=depth + 1)
+            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
         return (f'{indent}<div class="callout callout-{bg}">'
                 f'<span class="callout-icon">{emoji}</span>'
                 f'<div>{inner}</div></div>\n')
@@ -295,7 +295,19 @@ def _block_to_html(block: dict, depth: int = 0) -> str:
         return f"{indent}<hr>\n"
 
     elif btype == "image":
-        return ""  # images not supported
+        img_type = data.get("type", "external")
+        notion_url = data.get(img_type, {}).get("url", "")
+        block_id = block.get("id", "")
+        src = (image_url_map or {}).get(block_id) or notion_url
+        if not src:
+            return ""
+        caption = _rich_text_to_html(data.get("caption", []))
+        cap_html = f"<figcaption>{caption}</figcaption>" if caption else ""
+        alt = caption or ""
+        return (f'{indent}<figure class="image-block">\n'
+                f'{indent}  <img src="{src}" alt="{alt}" loading="lazy">\n'
+                f'{indent}  {cap_html}\n'
+                f'{indent}</figure>\n')
 
     elif btype == "video":
         vtype = data.get("type", "external")
@@ -321,17 +333,17 @@ def _block_to_html(block: dict, depth: int = 0) -> str:
         return f'{indent}<nav id="toc-placeholder" aria-label="Table of contents"></nav>\n'
 
     elif btype == "column_list":
-        cols_html = _blocks_to_html(children, depth=depth + 1) if children else ""
+        cols_html = _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map) if children else ""
         return f'{indent}<div class="column-list">\n{cols_html}{indent}</div>\n'
 
     elif btype == "column":
-        col_html = _blocks_to_html(children, depth=depth + 1) if children else ""
+        col_html = _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map) if children else ""
         return f'{indent}<div class="column">\n{col_html}{indent}</div>\n'
 
     return f"<!-- unsupported block type: {btype} -->\n"
 
 
-def _blocks_to_html(blocks: list, depth: int = 0) -> str:
+def _blocks_to_html(blocks: list, depth: int = 0, image_url_map: dict | None = None) -> str:
     """
     Converts a list of Notion blocks to HTML.
     Consecutive bulleted/numbered list items are grouped into <ul>/<ol>.
@@ -346,7 +358,7 @@ def _blocks_to_html(blocks: list, depth: int = 0) -> str:
         if btype == "bulleted_list_item":
             lines.append(f"{indent}<ul>\n")
             while i < len(blocks) and blocks[i].get("type") == "bulleted_list_item":
-                lines.append(_list_item_to_html(blocks[i], "ul", depth + 1))
+                lines.append(_list_item_to_html(blocks[i], "ul", depth + 1, image_url_map=image_url_map))
                 i += 1
             lines.append(f"{indent}</ul>\n")
             continue
@@ -354,12 +366,12 @@ def _blocks_to_html(blocks: list, depth: int = 0) -> str:
         if btype == "numbered_list_item":
             lines.append(f"{indent}<ol>\n")
             while i < len(blocks) and blocks[i].get("type") == "numbered_list_item":
-                lines.append(_list_item_to_html(blocks[i], "ol", depth + 1))
+                lines.append(_list_item_to_html(blocks[i], "ol", depth + 1, image_url_map=image_url_map))
                 i += 1
             lines.append(f"{indent}</ol>\n")
             continue
 
-        lines.append(_block_to_html(b, depth=depth))
+        lines.append(_block_to_html(b, depth=depth, image_url_map=image_url_map))
         i += 1
 
     return "".join(lines)
@@ -716,6 +728,14 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       word-break: break-all;
     }}
 
+    /* ── Images ── */
+    .image-block {{ margin: 2rem 0; text-align: center; }}
+    .image-block img {{ max-width: 100%; height: auto; border-radius: 6px; display: inline-block; }}
+    .image-block figcaption {{
+      font-family: var(--sans); font-size: 0.82rem;
+      color: var(--ink-muted); margin-top: 0.5rem;
+    }}
+
     /* ── Column layout ── */
     .column-list {{ display: flex; gap: 1.5rem; margin: 1.5rem 0; }}
     .column {{ flex: 1; min-width: 0; }}
@@ -843,6 +863,7 @@ def _render_html(
     author_slug: str = "",
     current_slug: str = "",
     api_base_url: str = "",
+    image_url_map: dict | None = None,
 ) -> str:
     """Assembles the final HTML string from page data. Returns HTML string."""
     meta_raw = page_data["meta"]
@@ -873,7 +894,7 @@ def _render_html(
             return iso[:10]
 
     edited_str = _fmt_date(m["edited"]) if m["edited"] else date_str
-    body = _blocks_to_html(blocks)
+    body = _blocks_to_html(blocks, image_url_map=image_url_map)
 
     more_from_html = ""
     if author_slug and api_base_url:
@@ -909,16 +930,18 @@ def render_page_data(
     author_slug: str = "",
     current_slug: str = "",
     api_base_url: str = "",
+    image_url_map: dict | None = None,
 ) -> str:
     """
     Render pre-fetched page data to HTML without making another API call.
 
     Args:
-        page_data:    Result of fetch_notion_page().
-        author:       Display name shown in the article byline.
-        author_slug:  NotoHub username — used to build the "More from" section.
-        current_slug: Slug of this article — excluded from the "More from" list.
-        api_base_url: Base URL of the NotoHub API injected into the "More from" script.
+        page_data:     Result of fetch_notion_page().
+        author:        Display name shown in the article byline.
+        author_slug:   NotoHub username — used to build the "More from" section.
+        current_slug:  Slug of this article — excluded from the "More from" list.
+        api_base_url:  Base URL of the NotoHub API injected into the "More from" script.
+        image_url_map: Mapping of Notion block IDs to S3-hosted image URLs.
     """
     return _render_html(
         page_data,
@@ -926,6 +949,7 @@ def render_page_data(
         author_slug=author_slug,
         current_slug=current_slug,
         api_base_url=api_base_url,
+        image_url_map=image_url_map,
     )
 
 
