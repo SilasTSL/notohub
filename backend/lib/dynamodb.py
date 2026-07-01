@@ -27,6 +27,7 @@ def _record_to_metadata(record: dict) -> dict:
     return {
         "id": record["id"],
         "notionPageId": record.get("notionPageId", ""),
+        "notionLink": record.get("notionLink", ""),
         "title": record["title"],
         "slug": record.get("slug", ""),
         "excerpt": record.get("excerpt", ""),

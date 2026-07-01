@@ -11,6 +11,7 @@ export interface Article {
   publishedAt: string
   excerpt?: string
   notionPageId?: string
+  notionLink?: string
 }
 
 export interface UserProfile {

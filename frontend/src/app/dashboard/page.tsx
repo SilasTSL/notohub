@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import Navbar from '@/components/Navbar'
 import ArticleRow from '@/components/ArticleRow'
 import PublishModal from '@/components/PublishModal'
-import { listArticles, deleteArticle, getProfile } from '@/lib/api'
+import { listArticles, deleteArticle, publishArticle, getProfile } from '@/lib/api'
 import type { Article } from '@/types'
 
 function Spinner() {
@@ -69,6 +69,11 @@ export default function DashboardPage() {
   async function handleDeleteArticle(slug: string) {
     await deleteArticle(slug)
     setArticles((prev) => prev.filter((a) => a.slug !== slug))
+  }
+
+  async function handleRefreshArticle(article: Article) {
+    if (!article.notionLink) return
+    await publishArticle(article.notionLink, article.slug)
   }
 
   if (loading) {
@@ -212,7 +217,7 @@ export default function DashboardPage() {
             ) : articles.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {articles.map((article) => (
-                  <ArticleRow key={article.id} article={article} username={user.username} onDelete={handleDeleteArticle} />
+                  <ArticleRow key={article.id} article={article} username={user.username} onDelete={handleDeleteArticle} onRefresh={handleRefreshArticle} />
                 ))}
               </div>
             ) : (

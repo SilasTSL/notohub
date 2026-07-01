@@ -88,6 +88,8 @@ def handle_user_publish(event: dict) -> dict:
     existing = get_user_article_by_slug(user_sub, slug)
     article_id = existing["id"] if existing else str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
+    # Preserve the original publish date when refreshing an existing article.
+    published_at = (existing or {}).get("publishedAt") or now
 
     record = {
         "PK": f"ARTICLE#{article_id}",
@@ -112,9 +114,9 @@ def handle_user_publish(event: dict) -> dict:
         "s3Key": s3_key,
         "notionLastEditedAt": metadata.get("notionLastEditedAt", now),
         "status": "published",
-        "createdAt": now,
+        "createdAt": (existing or {}).get("createdAt") or now,
         "updatedAt": now,
-        "publishedAt": now,
+        "publishedAt": published_at,
     }
 
     try:
