@@ -178,7 +178,7 @@ export default function DashboardPage() {
               {/* Blog link */}
               <div className="pt-4 border-t border-[#e6e6e6] mt-4">
                 <a
-                  href={`https://www.notohub.com/${user.username}`}
+                  href={`https://www.notohub.com/${user.username}/`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-[#1a8917] hover:underline"
@@ -204,17 +204,19 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Article list */}
-            <div className="bg-white rounded-2xl border border-[#e6e6e6] px-6">
-              {articlesLoading ? (
-                <div className="py-20 flex justify-center">
-                  <Spinner />
-                </div>
-              ) : articles.length > 0 ? (
-                articles.map((article) => (
+            {/* Article grid */}
+            {articlesLoading ? (
+              <div className="py-20 flex justify-center">
+                <Spinner />
+              </div>
+            ) : articles.length > 0 ? (
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {articles.map((article) => (
                   <ArticleRow key={article.id} article={article} username={user.username} onDelete={handleDeleteArticle} />
-                ))
-              ) : (
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-[#e6e6e6] px-6">
                 <div className="py-20 text-center">
                   <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[#f9f9f9] flex items-center justify-center">
                     <svg
@@ -241,8 +243,8 @@ export default function DashboardPage() {
                     Publish New Article
                   </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </main>
         </div>
       </div>

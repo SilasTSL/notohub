@@ -1,7 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { publishArticle } from '@/lib/api'
+
+const LOADING_MESSAGES = [
+  'Connecting to Notion…',
+  'Fetching your page content…',
+  'Parsing blocks and formatting…',
+  'Processing images…',
+  'Almost there…',
+]
 
 type PublishModalProps = {
   username: string
@@ -17,6 +25,16 @@ export default function PublishModal({ username, onClose, onPublished }: Publish
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [errors, setErrors] = useState<{ notionUrl?: string; slug?: string }>({})
+  const [msgIdx, setMsgIdx] = useState(0)
+
+  useEffect(() => {
+    if (!loading) return
+    setMsgIdx(0)
+    const id = setInterval(() => {
+      setMsgIdx((i) => (i + 1 < LOADING_MESSAGES.length ? i + 1 : i))
+    }, 18000)
+    return () => clearInterval(id)
+  }, [loading])
 
   const published = publishedUrl !== null
   const displaySlug = slug || 'my-article-title'
@@ -65,6 +83,7 @@ export default function PublishModal({ username, onClose, onPublished }: Publish
   }
 
   function handleClose() {
+    if (loading) return
     if (published) onPublished()
     onClose()
   }
@@ -78,95 +97,141 @@ export default function PublishModal({ username, onClose, onPublished }: Publish
         className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-[#6b6b6b] hover:text-[#1a1a1a] hover:bg-[#f9f9f9] rounded-full transition-colors text-lg leading-none"
-          aria-label="Close"
-        >
-          ×
-        </button>
+        {!loading && (
+          <button
+            onClick={handleClose}
+            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-[#6b6b6b] hover:text-[#1a1a1a] hover:bg-[#f9f9f9] rounded-full transition-colors text-lg leading-none"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        )}
 
         {!published ? (
-          <>
-            <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-6">
-              Publish New Article
-            </h2>
-
-            {error && (
-              <div className="mb-5 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-[#1a1a1a] mb-1.5">
-                  Notion Page URL
-                </label>
-                <input
-                  type="url"
-                  value={notionUrl}
-                  onChange={(e) => {
-                    setNotionUrl(e.target.value)
-                    setErrors((prev) => ({ ...prev, notionUrl: undefined }))
-                  }}
-                  placeholder="https://www.notion.so/..."
-                  disabled={loading}
-                  className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors placeholder:text-[#b0b0b0] focus:border-[#1a8917] focus:ring-2 focus:ring-[#1a8917]/10 disabled:opacity-60 ${
-                    errors.notionUrl
-                      ? 'border-red-400 bg-red-50'
-                      : 'border-[#e6e6e6] bg-white'
-                  }`}
-                />
-                {errors.notionUrl ? (
-                  <p className="text-xs text-red-500 mt-1">{errors.notionUrl}</p>
-                ) : (
-                  <p className="text-xs text-[#6b6b6b] mt-1.5">
-                    Make sure this page is shared with the NotoHub integration in Notion.
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#1a1a1a] mb-1.5">
-                  Slug
-                </label>
-                <input
-                  type="text"
-                  value={slug}
-                  onChange={(e) => handleSlugChange(e.target.value)}
-                  placeholder="my-article-title"
-                  disabled={loading}
-                  className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors font-mono placeholder:text-[#b0b0b0] focus:border-[#1a8917] focus:ring-2 focus:ring-[#1a8917]/10 disabled:opacity-60 ${
-                    errors.slug
-                      ? 'border-red-400 bg-red-50'
-                      : 'border-[#e6e6e6] bg-white'
-                  }`}
-                />
-                {errors.slug ? (
-                  <p className="text-xs text-red-500 mt-1">{errors.slug}</p>
-                ) : (
-                  <p className="text-xs text-[#1a8917] mt-1.5 font-mono">
-                    → {previewUrl}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <button
-              onClick={handlePublish}
-              disabled={loading}
-              className="mt-6 w-full bg-[#1a8917] hover:bg-[#157313] disabled:opacity-70 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
-            >
-              {loading && (
-                <svg className="animate-spin h-4 w-4 text-white shrink-0" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          loading ? (
+            /* ── Loading panel ── */
+            <div className="flex flex-col items-center py-6 text-center">
+              {/* Spinner */}
+              <div className="relative w-16 h-16 mb-7">
+                <svg
+                  className="animate-spin w-16 h-16 text-[#1a8917]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-20"
+                    cx="12" cy="12" r="10"
+                    stroke="currentColor" strokeWidth="3"
+                  />
+                  <path
+                    className="opacity-80"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
+              </div>
+
+              <h2 className="font-serif text-xl font-bold text-[#1a1a1a] mb-2">
+                Publishing your article…
+              </h2>
+
+              {/* Cycling status message */}
+              <p
+                key={msgIdx}
+                className="text-sm text-[#6b6b6b] mb-6 animate-in fade-in duration-500"
+              >
+                {LOADING_MESSAGES[msgIdx]}
+              </p>
+
+              {/* Progress dots */}
+              <div className="flex gap-1.5 mb-6">
+                {LOADING_MESSAGES.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`block w-1.5 h-1.5 rounded-full transition-colors duration-500 ${
+                      i <= msgIdx ? 'bg-[#1a8917]' : 'bg-[#e6e6e6]'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <p className="text-xs text-[#b0b0b0] max-w-xs">
+                Importing from Notion can take up to 2 minutes — hang tight while we fetch and format your content.
+              </p>
+            </div>
+          ) : (
+            <>
+              <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-6">
+                Publish New Article
+              </h2>
+
+              {error && (
+                <div className="mb-5 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+                  {error}
+                </div>
               )}
-              {loading ? 'Publishing…' : 'Publish Article'}
-            </button>
-          </>
+
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-[#1a1a1a] mb-1.5">
+                    Notion Page URL
+                  </label>
+                  <input
+                    type="url"
+                    value={notionUrl}
+                    onChange={(e) => {
+                      setNotionUrl(e.target.value)
+                      setErrors((prev) => ({ ...prev, notionUrl: undefined }))
+                    }}
+                    placeholder="https://www.notion.so/..."
+                    className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors placeholder:text-[#b0b0b0] focus:border-[#1a8917] focus:ring-2 focus:ring-[#1a8917]/10 ${
+                      errors.notionUrl
+                        ? 'border-red-400 bg-red-50'
+                        : 'border-[#e6e6e6] bg-white'
+                    }`}
+                  />
+                  {errors.notionUrl ? (
+                    <p className="text-xs text-red-500 mt-1">{errors.notionUrl}</p>
+                  ) : (
+                    <p className="text-xs text-[#6b6b6b] mt-1.5">
+                      Make sure this page is shared with the NotoHub integration in Notion.
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#1a1a1a] mb-1.5">
+                    Slug
+                  </label>
+                  <input
+                    type="text"
+                    value={slug}
+                    onChange={(e) => handleSlugChange(e.target.value)}
+                    placeholder="my-article-title"
+                    className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors font-mono placeholder:text-[#b0b0b0] focus:border-[#1a8917] focus:ring-2 focus:ring-[#1a8917]/10 ${
+                      errors.slug
+                        ? 'border-red-400 bg-red-50'
+                        : 'border-[#e6e6e6] bg-white'
+                    }`}
+                  />
+                  {errors.slug ? (
+                    <p className="text-xs text-red-500 mt-1">{errors.slug}</p>
+                  ) : (
+                    <p className="text-xs text-[#1a8917] mt-1.5 font-mono">
+                      → {previewUrl}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={handlePublish}
+                className="mt-6 w-full bg-[#1a8917] hover:bg-[#157313] text-white font-medium py-3 rounded-lg transition-colors text-sm"
+              >
+                Publish Article
+              </button>
+            </>
+          )
         ) : (
           <div className="text-center py-2">
             <div className="text-5xl mb-5">🎉</div>

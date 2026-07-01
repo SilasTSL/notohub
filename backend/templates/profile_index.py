@@ -116,8 +116,6 @@ def render_profile_index_shell(
         else ""
     )
 
-    # ── JS strings — username and API URL embedded at generation time ─────────
-    # Username is validated as alphanumeric + hyphens upstream; safe to embed.
     js_username = username
     js_api = api_base_url.rstrip("/")
 
@@ -131,7 +129,7 @@ def render_profile_index_shell(
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&amp;family=Source+Sans+3:wght@400;600&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&amp;family=Source+Sans+3:wght@400;500;600&amp;display=swap" rel="stylesheet">
 
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -141,20 +139,20 @@ def render_profile_index_shell(
       --sans:       "Source Sans 3", system-ui, sans-serif;
       --ink:        #1a1a1a;
       --ink-muted:  #6b6b6b;
-      --ink-faint:  #b3b3b3;
+      --ink-faint:  #b0b0b0;
       --bg:         #ffffff;
       --bg-subtle:  #f9f9f9;
       --accent:     #1a8917;
+      --accent-dark:#157313;
       --border:     #e6e6e6;
-      --max-w:      680px;
     }}
 
-    html {{ font-size: 18px; scroll-behavior: smooth; }}
+    html {{ font-size: 16px; scroll-behavior: smooth; }}
     body {{
       font-family: var(--sans);
       color: var(--ink);
       background: var(--bg);
-      line-height: 1.7;
+      line-height: 1.6;
       -webkit-font-smoothing: antialiased;
     }}
 
@@ -164,13 +162,13 @@ def render_profile_index_shell(
       background: rgba(255,255,255,0.94);
       backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
+      padding: 0 1.5rem;
       height: 56px;
       display: flex; align-items: center; justify-content: space-between;
     }}
     .nav-logo {{
       font-family: var(--serif);
-      font-weight: 600; font-size: 1.1rem;
+      font-weight: 700; font-size: 1.1rem;
       color: var(--ink); text-decoration: none;
       letter-spacing: -0.02em;
     }}
@@ -178,54 +176,57 @@ def render_profile_index_shell(
 
     /* ── Page wrapper ── */
     .page {{
-      max-width: var(--max-w);
+      max-width: 72rem;
       margin: 0 auto;
-      padding: 3.5rem 1.5rem 5rem;
+      padding: 0 1.5rem 5rem;
     }}
 
     /* ── Profile header ── */
-    .profile-header {{ text-align: center; margin-bottom: 3rem; }}
+    .profile-header {{
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      text-align: center;
+    }}
 
     .avatar-img {{
-      width: 96px; height: 96px;
+      width: 80px; height: 80px;
       border-radius: 50%;
       object-fit: cover;
-      margin: 0 auto 1.25rem;
-      display: block;
       border: 3px solid var(--border);
     }}
     .avatar-initial {{
-      width: 96px; height: 96px;
+      width: 80px; height: 80px;
       border-radius: 50%;
-      margin: 0 auto 1.25rem;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--serif);
-      font-size: 2.2rem; font-weight: 600;
+      font-size: 2rem; font-weight: 700;
       color: #fff;
       user-select: none;
     }}
 
     .profile-username {{
       font-family: var(--serif);
-      font-size: clamp(1.6rem, 4vw, 2.2rem);
-      font-weight: 600;
+      font-size: clamp(1.6rem, 4vw, 2rem);
+      font-weight: 700;
       color: var(--ink);
-      margin-bottom: 0.75rem;
       letter-spacing: -0.02em;
     }}
 
     .profile-bio {{
-      font-size: 0.94rem;
+      font-size: 0.95rem;
       color: var(--ink-muted);
       max-width: 480px;
-      margin: 0 auto 1.25rem;
       line-height: 1.65;
     }}
 
     .social-links {{
       display: flex; gap: 1rem;
       justify-content: center;
-      margin-top: 0.5rem;
     }}
     .social-link {{
       color: var(--ink-muted);
@@ -234,61 +235,119 @@ def render_profile_index_shell(
     }}
     .social-link:hover {{ color: var(--accent); }}
 
-    /* ── Divider ── */
-    hr.section-divider {{
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 0 0 2.5rem;
-    }}
-
     /* ── Articles section ── */
-    .section-heading {{
-      font-family: var(--sans);
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--ink-muted);
-      margin-bottom: 1.5rem;
+    .articles-section {{
+      padding-top: 2.5rem;
     }}
 
-    .article-list {{ display: flex; flex-direction: column; gap: 0; }}
+    .section-heading {{
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }}
 
-    .article-row {{
+    /* ── Card grid ── */
+    .card-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }}
+
+    .card {{
       display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 1rem;
-      padding: 1rem 0;
-      border-bottom: 1px solid var(--border);
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      overflow: hidden;
       text-decoration: none;
       color: inherit;
+      transition: border-color 0.15s;
     }}
-    .article-row:first-child {{ border-top: 1px solid var(--border); }}
-    .article-row:hover .article-title {{ color: var(--accent); }}
+    .card:hover {{ border-color: var(--accent); }}
+    .card:hover .card-title {{ color: var(--accent); }}
 
-    .article-title {{
-      font-family: var(--serif);
-      font-size: 1rem;
-      font-weight: 400;
-      color: var(--ink);
-      transition: color 0.15s;
-      flex: 1;
-      min-width: 0;
-      white-space: nowrap;
+    .card-thumb {{
+      width: 100%; height: 11rem;
+      display: flex; align-items: center; justify-content: center;
       overflow: hidden;
-      text-overflow: ellipsis;
-    }}
-    .article-date {{
-      font-family: var(--sans);
-      font-size: 0.8rem;
-      color: var(--ink-faint);
-      white-space: nowrap;
       flex-shrink: 0;
+    }}
+    .card-thumb img {{
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }}
+    .card-thumb-placeholder {{
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }}
+    .card-thumb-letter {{
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: 5rem;
+      user-select: none;
+      line-height: 1;
+    }}
+
+    .card-body {{
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      padding: 1rem 1.125rem;
+      flex: 1;
+    }}
+
+    .card-tags {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+      margin-bottom: 0.125rem;
+    }}
+    .card-tag {{
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      background: #dcfce7;
+      color: #166534;
+    }}
+
+    .card-title {{
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      transition: color 0.15s;
+    }}
+
+    .card-excerpt {{
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+    }}
+
+    .card-date {{
+      font-size: 0.75rem;
+      color: var(--ink-faint);
+      margin-top: auto;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
     }}
 
     .articles-placeholder {{
-      font-family: var(--sans);
       font-size: 0.9rem;
       color: var(--ink-muted);
       padding: 1.5rem 0;
@@ -297,10 +356,9 @@ def render_profile_index_shell(
     /* ── Footer ── */
     footer.site-footer {{
       margin-top: 4rem;
-      padding-top: 2rem;
+      padding-top: 1.5rem;
       border-top: 1px solid var(--border);
       text-align: center;
-      font-family: var(--sans);
       font-size: 0.8rem;
       color: var(--ink-faint);
     }}
@@ -310,8 +368,9 @@ def render_profile_index_shell(
     }}
     footer.site-footer a:hover {{ text-decoration: underline; }}
 
-    @media (max-width: 480px) {{
-      .page {{ padding-top: 2rem; }}
+    @media (max-width: 600px) {{
+      .profile-header {{ padding: 2rem 1rem; }}
+      .card-grid {{ grid-template-columns: 1fr; }}
     }}
   </style>
 </head>
@@ -321,18 +380,15 @@ def render_profile_index_shell(
     <a class="nav-logo" href="https://www.notohub.com/">NotoHub</a>
   </nav>
 
+  <div class="profile-header">
+    {avatar_block}
+    <h1 class="profile-username">{e(username)}</h1>
+    {bio_block}
+    {social_block}
+  </div>
+
   <div class="page">
-
-    <header class="profile-header">
-      {avatar_block}
-      <h1 class="profile-username">{e(username)}</h1>
-      {bio_block}
-      {social_block}
-    </header>
-
-    <hr class="section-divider">
-
-    <section>
+    <section class="articles-section">
       <p class="section-heading">Articles</p>
       <div id="articles-list">
         <p class="articles-placeholder">Loading articles&hellip;</p>
@@ -342,13 +398,22 @@ def render_profile_index_shell(
     <footer class="site-footer">
       Published with <a href="https://www.notohub.com">NotoHub</a>
     </footer>
-
   </div>
 
   <script>
     (function () {{
       var USERNAME = "{js_username}";
       var API      = "{js_api}";
+
+      var ACCENT_COLOURS = [
+        "#1a8917", "#0077b6", "#c0392b", "#e67e22",
+        "#7b2d8b", "#2d6a4f", "#e76f51"
+      ];
+      function accentColour(str) {{
+        var sum = 0;
+        for (var i = 0; i < str.length; i++) sum += str.charCodeAt(i);
+        return ACCENT_COLOURS[sum % ACCENT_COLOURS.length];
+      }}
 
       fetch(API + "/articles/public?username=" + encodeURIComponent(USERNAME))
         .then(function (r) {{ return r.json(); }})
@@ -362,41 +427,57 @@ def render_profile_index_shell(
             return;
           }}
 
-          el.innerHTML =
-            '<div class="article-list">' +
-            articles
-              .map(function (a) {{
-                var date = "";
-                try {{
-                  date = new Date(a.publishedAt).toLocaleDateString("en-US", {{
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  }});
-                }} catch (err) {{}}
-                return (
-                  '<a class="article-row" href="/' +
-                  encodeURIComponent(USERNAME) +
-                  "/" +
-                  encodeURIComponent(a.slug) +
-                  '/">' +
-                  '<span class="article-title">' +
-                  _esc(a.title) +
-                  "</span>" +
-                  '<span class="article-date">' +
-                  _esc(date) +
-                  "</span>" +
-                  "</a>"
-                );
-              }})
-              .join("") +
-            "</div>";
+          var cards = articles.map(function (a) {{
+            var date = "";
+            try {{
+              date = new Date(a.publishedAt).toLocaleDateString("en-US", {{
+                month: "short", day: "numeric", year: "numeric"
+              }});
+            }} catch (err) {{}}
+
+            var colour = accentColour(a.title || "");
+            var initial = (a.title || "?")[0].toUpperCase();
+            var href = "/" + encodeURIComponent(USERNAME) + "/" + encodeURIComponent(a.slug) + "/";
+
+            var thumbHtml;
+            if (a.coverImageUrl) {{
+              thumbHtml = '<div class="card-thumb"><img src="' + _esc(a.coverImageUrl) + '" alt="' + _esc(a.title) + '" loading="lazy"></div>';
+            }} else {{
+              thumbHtml = '<div class="card-thumb"><div class="card-thumb-placeholder" style="background:' + colour + '18">'
+                + '<span class="card-thumb-letter" style="color:' + colour + ';opacity:0.25">' + _esc(initial) + '</span>'
+                + '</div></div>';
+            }}
+
+            var tagsHtml = "";
+            if (a.tags && a.tags.length) {{
+              tagsHtml = '<div class="card-tags">'
+                + a.tags.slice(0, 3).map(function (t) {{
+                    return '<span class="card-tag">' + _esc(t.name) + '</span>';
+                  }}).join("")
+                + '</div>';
+            }}
+
+            var excerptHtml = a.excerpt
+              ? '<p class="card-excerpt">' + _esc(a.excerpt) + '</p>'
+              : '';
+
+            return '<a class="card" href="' + _esc(href) + '">'
+              + thumbHtml
+              + '<div class="card-body">'
+              + tagsHtml
+              + '<span class="card-title">' + _esc(a.title) + '</span>'
+              + excerptHtml
+              + '<span class="card-date">' + _esc(date) + '</span>'
+              + '</div>'
+              + '</a>';
+          }});
+
+          el.innerHTML = '<div class="card-grid">' + cards.join("") + '</div>';
         }})
         .catch(function () {{
           var el = document.getElementById("articles-list");
           if (el) {{
-            el.innerHTML =
-              '<p class="articles-placeholder">Couldn’t load articles. Please refresh.</p>';
+            el.innerHTML = '<p class="articles-placeholder">Couldn’t load articles. Please refresh.</p>';
           }}
         }});
 
