@@ -2,6 +2,7 @@ version = 0.1
 
 [default.global.parameters]
 stack_name = "notohub-backend"
+region = "ap-southeast-1"
 
 [default.build.parameters]
 # Docker is required — builds inside an Amazon Linux container so that
@@ -14,3 +15,6 @@ confirm_changeset = true
 region         = "ap-southeast-1"
 # SAM auto-creates and manages an S3 bucket for deployment artefacts.
 resolve_s3     = true
+s3_prefix = "notohub-backend"
+parameter_overrides = "DynamoDBTableName=\"notohub-articles\" S3BucketName=\"www.notohub.com\" AllowedOrigin=\"http://localhost:3000\" CognitoUserPoolId=\"ap-southeast-1_YfADIxfIZ\" CognitoAppClientId=\"1hoa0lkisqtp91v823s5n4fdm8\" CognitoRegion=\"ap-southeast-1\" NotionClientId=\"378d872b-594c-8101-a14a-003722d4dc6f\" NotionRedirectUri=\"https://api.notohub.com/auth/notion/callback\" PublicApiUrl=\"https://api.notohub.com\""
+image_repositories = []

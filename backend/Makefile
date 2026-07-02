@@ -9,3 +9,4 @@ build-NotohubFunction:
 	cp handler.py $(ARTIFACTS_DIR)/
 	cp -r lib/ $(ARTIFACTS_DIR)/lib/
 	cp -r handlers/ $(ARTIFACTS_DIR)/handlers/
+	cp -r templates/ $(ARTIFACTS_DIR)/templates/

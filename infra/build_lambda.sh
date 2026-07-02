@@ -56,6 +56,7 @@ echo "📋  Copying source files…"
 cp "${BACKEND_DIR}/handler.py" "${PKG_DIR}/"
 cp -r "${BACKEND_DIR}/handlers/" "${PKG_DIR}/handlers/"
 cp -r "${BACKEND_DIR}/lib/" "${PKG_DIR}/lib/"
+cp -r "${BACKEND_DIR}/templates/" "${PKG_DIR}/templates/"
 
 # ── Strip unnecessary files to reduce zip size ────────────────────────────────
 echo "🧹  Stripping tests, __pycache__, *.dist-info…"

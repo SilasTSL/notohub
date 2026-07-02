@@ -146,7 +146,7 @@ def put_article_image(
         CacheControl="public, max-age=31536000",
     )
 
-    return f"https://www.notohub.com/{key}"
+    return f"https://{config.s3_bucket_name}/{key}"
 
 
 def generate_presigned_put_url(username: str, content_type: str) -> tuple[str, str]:
@@ -167,7 +167,7 @@ def generate_presigned_put_url(username: str, content_type: str) -> tuple[str, s
         },
         ExpiresIn=300,
     )
-    public_url = f"https://www.notohub.com/{key}"
+    public_url = f"https://{config.s3_bucket_name}/{key}"
     return upload_url, public_url
 
 

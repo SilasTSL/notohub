@@ -6,8 +6,10 @@ set -euo pipefail
 ENV="${DEPLOY_ENV:-production}"
 AWS_REGION="${AWS_REGION:-ap-southeast-1}"
 TABLE_NAME="notohub-articles-${ENV}"
-BUCKET_NAME="notohub-content-${ENV}"
-FRONTEND_BUCKET="notohub-frontend-${ENV}"
+# Single bucket serves both article/image content and the static frontend
+# (S3 static website hosting requires the bucket name to match the domain,
+# e.g. www.notohub.com — see backend/lib/s3.py and template.yaml S3BucketName).
+FRONTEND_BUCKET="${FRONTEND_BUCKET:-notohub-frontend-${ENV}}"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -81,26 +83,9 @@ aws dynamodb update-table \
 
 echo "   ✓ DynamoDB table: ${TABLE_NAME}"
 
-# ─── S3 content bucket ────────────────────────────────────────────────────────
+# ─── S3 bucket (content + frontend) ──────────────────────────────────────────
 echo ""
-echo "🪣  Creating S3 content bucket: ${BUCKET_NAME}…"
-if [[ "${AWS_REGION}" == "us-east-1" ]]; then
-  aws s3api create-bucket \
-    --region "${AWS_REGION}" \
-    --bucket "${BUCKET_NAME}" \
-    --no-cli-pager || true
-else
-  aws s3api create-bucket \
-    --region "${AWS_REGION}" \
-    --bucket "${BUCKET_NAME}" \
-    --create-bucket-configuration LocationConstraint="${AWS_REGION}" \
-    --no-cli-pager || true
-fi
-echo "   ✓ Content bucket: ${BUCKET_NAME}"
-
-# ─── S3 frontend bucket ────────────────────────────────────────────────────────
-echo ""
-echo "🪣  Creating S3 frontend bucket: ${FRONTEND_BUCKET}…"
+echo "🪣  Creating S3 bucket: ${FRONTEND_BUCKET}…"
 if [[ "${AWS_REGION}" == "us-east-1" ]]; then
   aws s3api create-bucket \
     --region "${AWS_REGION}" \
