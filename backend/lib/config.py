@@ -16,6 +16,7 @@ class Config:
     notion_redirect_uri: str = ""
     dynamodb_table_name: str = ""
     s3_bucket_name: str = ""
+    s3_bucket_region: str = ""
     s3_content_prefix: str = ""
     aws_region: str = ""
     allowed_origin: str = ""
@@ -36,8 +37,12 @@ class Config:
 
         self.dynamodb_table_name = _required("DYNAMODB_TABLE_NAME")
         self.s3_bucket_name = _required("S3_BUCKET_NAME")
-        self.s3_content_prefix = os.environ.get("S3_CONTENT_PREFIX", "articles/")
         self.aws_region = os.environ.get("AWS_REGION", "ap-southeast-1")
+        # The content bucket (www.notohub.com) lives in us-east-1, independent of
+        # AWS_REGION — the S3 client must be signed for the bucket's own region or
+        # presigned URLs (which can't transparently follow a redirect) will 301.
+        self.s3_bucket_region = os.environ.get("S3_BUCKET_REGION", "us-east-1")
+        self.s3_content_prefix = os.environ.get("S3_CONTENT_PREFIX", "articles/")
         self.allowed_origin = os.environ.get("ALLOWED_ORIGIN", "*")
         self.public_api_url = os.environ.get("PUBLIC_API_URL", "http://localhost:8000")
 

@@ -25,7 +25,7 @@ export default function ArticleCard({ article }: Props) {
 
   return (
     <a
-      href={`/articles/${article.slug}`}
+      href={`/articles/${article.slug}/`}
       className="group flex flex-col rounded-xl border border-[#e6e6e6] overflow-hidden hover:border-[#1a8917] transition-colors"
     >
       {article.coverImageUrl ? (

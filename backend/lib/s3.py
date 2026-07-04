@@ -15,7 +15,7 @@ _s3_client = None
 def _get_client():
     global _s3_client
     if _s3_client is None:
-        _s3_client = boto3.client("s3", region_name=config.aws_region)
+        _s3_client = boto3.client("s3", region_name=config.s3_bucket_region)
     return _s3_client
 
 

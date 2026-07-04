@@ -208,11 +208,14 @@ export default function ProfilePage() {
     try {
       const { uploadUrl, publicUrl } = await getAvatarUploadUrl(file.type)
 
-      await fetch(uploadUrl, {
+      const putRes = await fetch(uploadUrl, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type },
       })
+      if (!putRes.ok) {
+        throw new Error(`Upload failed with status ${putRes.status}`)
+      }
 
       // Upload succeeded — switch to the permanent public URL
       URL.revokeObjectURL(blobUrl)

@@ -1,16 +1,24 @@
+'use client'
+
+import { useEffect, useState } from "react";
 import type { ArticleMetadata, ArticleListResponse } from "@notohub/shared";
 import ArticleCard from "@/components/ArticleCard";
 
-export const metadata = { title: "Articles" };
+function Spinner() {
+  return (
+    <svg className="animate-spin h-8 w-8 text-[#1a8917]" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+}
 
 async function getArticles(): Promise<ArticleMetadata[]> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (!apiUrl) return [];
 
   try {
-    const res = await fetch(`${apiUrl}/articles?pageSize=50`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(`${apiUrl}/articles?pageSize=50`);
     if (!res.ok) return [];
     const json: ArticleListResponse = await res.json();
     return json.data?.items ?? [];
@@ -19,8 +27,17 @@ async function getArticles(): Promise<ArticleMetadata[]> {
   }
 }
 
-export default async function ArticlesPage() {
-  const articles = await getArticles();
+export default function ArticlesPage() {
+  const [articles, setArticles] = useState<ArticleMetadata[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getArticles().then((items) => {
+      setArticles(items);
+      setLoading(false);
+    });
+  }, []);
+
   const [featured, ...rest] = articles;
 
   return (
@@ -33,14 +50,18 @@ export default async function ArticlesPage() {
         </p>
       </div>
 
-      {articles.length === 0 ? (
+      {loading ? (
+        <div className="py-20 flex justify-center">
+          <Spinner />
+        </div>
+      ) : articles.length === 0 ? (
         <p className="text-[#6b6b6b]">No articles yet. Check back soon!</p>
       ) : (
         <>
           {/* Featured / latest article */}
           {featured && (
             <a
-              href={`/articles/${featured.slug}`}
+              href={`/articles/${featured.slug}/`}
               className="group grid sm:grid-cols-2 rounded-2xl border border-[#e6e6e6] overflow-hidden hover:border-[#1a8917] transition-colors"
             >
               {featured.coverImageUrl ? (
