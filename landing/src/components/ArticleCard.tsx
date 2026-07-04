@@ -23,9 +23,13 @@ export default function ArticleCard({ article }: Props) {
 
   const colour = accentColour(article.title)
 
+  // Same-domain link straight to the real, server-generated article page
+  // (uploaded directly to this bucket at publish time) — not a route in this app.
+  const href = `/${article.author.name}/${article.slug}/`;
+
   return (
     <a
-      href={`/articles/${article.slug}/`}
+      href={href}
       className="group flex flex-col rounded-xl border border-[#e6e6e6] overflow-hidden hover:border-[#1a8917] transition-colors"
     >
       {article.coverImageUrl ? (

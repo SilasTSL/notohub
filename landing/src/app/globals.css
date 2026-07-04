@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: "Inter", sans-serif;
+    --font-lora: "Lora", serif;
+    --font-mono: "JetBrains Mono", monospace;
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-white text-[#1a1a1a];
+  }
+}

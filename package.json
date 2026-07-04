@@ -4,13 +4,15 @@
   "private": true,
   "workspaces": [
     "shared",
-    "frontend"
+    "frontend",
+    "landing"
   ],
   "scripts": {
     "dev": "npm run dev --workspace=frontend",
-    "build": "npm run build --workspace=shared && npm run build --workspace=frontend",
+    "build": "npm run build --workspace=shared && npm run build --workspace=frontend && npm run build --workspace=landing",
     "build:shared": "npm run build --workspace=shared",
     "build:frontend": "npm run build --workspace=frontend",
+    "build:landing": "npm run build --workspace=landing",
     "build:backend": "bash infra/build_lambda.sh",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"

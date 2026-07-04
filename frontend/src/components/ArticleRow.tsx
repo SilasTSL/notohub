@@ -37,7 +37,7 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
   const [mode, setMode] = useState<'view' | 'confirm-delete' | 'confirm-refresh'>('view')
   const [busy, setBusy] = useState(false)
 
-  const viewUrl = `/articles/${article.slug}`
+  const viewUrl = `https://www.notohub.com/${username}/${article.slug}/`
   const colour = accentColour(article.title)
 
   async function handleDelete() {

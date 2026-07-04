@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import type { ArticleMetadata, ArticleListResponse } from "@notohub/shared";
 import ArticleCard from "@/components/ArticleCard";
 
+const API_URL = "https://api.notohub.com";
+
 function Spinner() {
   return (
     <svg className="animate-spin h-8 w-8 text-[#1a8917]" fill="none" viewBox="0 0 24 24">
@@ -14,11 +16,8 @@ function Spinner() {
 }
 
 async function getArticles(): Promise<ArticleMetadata[]> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) return [];
-
   try {
-    const res = await fetch(`${apiUrl}/articles?pageSize=50`);
+    const res = await fetch(`${API_URL}/articles?pageSize=50`);
     if (!res.ok) return [];
     const json: ArticleListResponse = await res.json();
     return json.data?.items ?? [];
@@ -61,7 +60,7 @@ export default function ArticlesPage() {
           {/* Featured / latest article */}
           {featured && (
             <a
-              href={`/articles/${featured.slug}/`}
+              href={`/${featured.author.name}/${featured.slug}/`}
               className="group grid sm:grid-cols-2 rounded-2xl border border-[#e6e6e6] overflow-hidden hover:border-[#1a8917] transition-colors"
             >
               {featured.coverImageUrl ? (

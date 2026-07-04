@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [articles, setArticles] = useState<Article[]>([])
   const [articlesLoading, setArticlesLoading] = useState(true)
   const [profilePublished, setProfilePublished] = useState<boolean | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
@@ -61,7 +62,10 @@ export default function DashboardPage() {
     if (!loading && user) {
       loadArticles()
       getProfile()
-        .then((p) => setProfilePublished(p.profilePublished))
+        .then((p) => {
+          setProfilePublished(p.profilePublished)
+          setAvatarUrl(p.avatarUrl ?? null)
+        })
         .catch(() => setProfilePublished(false))
     }
   }, [loading, user, loadArticles])
@@ -100,9 +104,17 @@ export default function DashboardPage() {
             <div className="w-full bg-white rounded-2xl border border-[#e6e6e6] p-5 flex flex-col">
               {/* Avatar + info */}
               <div className="flex flex-col items-center text-center pb-5 border-b border-[#e6e6e6]">
-                <div className="w-14 h-14 rounded-full bg-[#1a8917] flex items-center justify-center text-white text-xl font-bold mb-3 select-none">
-                  {initial}
-                </div>
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={user.username}
+                    className="w-14 h-14 rounded-full object-cover mb-3 border border-[#e6e6e6]"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-[#1a8917] flex items-center justify-center text-white text-xl font-bold mb-3 select-none">
+                    {initial}
+                  </div>
+                )}
                 <p className="font-semibold text-[#1a1a1a] text-sm">
                   {user.username}
                 </p>
