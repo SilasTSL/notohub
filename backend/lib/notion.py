@@ -107,6 +107,35 @@ def _download_image(url: str) -> tuple[bytes, str] | None:
         return None
 
 
+def _resolve_cover_image(page_meta: dict, username: str, slug: str) -> str:
+    """
+    Returns a permanent cover image URL for the article page, or "" if the
+    page has no cover. Notion-hosted ("file") cover URLs expire after about
+    an hour, so those get downloaded and re-uploaded to S3 — the same
+    treatment inline images already get. External URLs (e.g. a pasted
+    Unsplash link) are already permanent and used as-is.
+    """
+    cover = page_meta.get("cover")
+    if not cover:
+        return ""
+    ctype = cover.get("type", "external")
+    url = cover.get(ctype, {}).get("url", "")
+    if not url:
+        return ""
+    if ctype == "external":
+        return url
+
+    from lib.s3 import put_article_image
+    result = _download_image(url)
+    if result is None:
+        return ""
+    image_data, content_type = result
+    try:
+        return put_article_image(username, slug, "cover", image_data, content_type)
+    except Exception:
+        return ""
+
+
 def _upload_article_images(blocks: list, username: str, slug: str) -> dict[str, str]:
     """
     Download all image blocks and upload them to S3.
@@ -184,11 +213,21 @@ def fetch_page_for_publish(
     metadata = page_to_metadata(page_data["meta"], existing_id=existing_id)
     display_author = author_name or metadata["author"]["name"]
 
+    username_for_assets = author_slug or "unknown"
+    slug_for_assets = current_slug or page_id
+
     image_url_map = _upload_article_images(
         page_data["blocks"],
-        username=author_slug or "unknown",
-        slug=current_slug or page_id,
+        username=username_for_assets,
+        slug=slug_for_assets,
     )
+
+    # Re-hosts Notion-hosted covers to S3 (they expire after ~1hr) so both the
+    # rendered page and the stored article record (used by article cards
+    # elsewhere) point at a URL that won't rot.
+    cover_image_url = _resolve_cover_image(page_data["meta"], username_for_assets, slug_for_assets)
+    if cover_image_url:
+        metadata["coverImageUrl"] = cover_image_url
 
     html = render_page_data(
         page_data,
@@ -198,5 +237,7 @@ def fetch_page_for_publish(
         api_base_url=config.public_api_url,
         image_url_map=image_url_map,
         author_avatar_url=author_avatar_url,
+        cover_image_url=metadata.get("coverImageUrl") or "",
+        excerpt=metadata.get("excerpt", ""),
     )
     return metadata, html

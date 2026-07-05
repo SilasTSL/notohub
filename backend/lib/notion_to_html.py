@@ -432,7 +432,33 @@ def _render_toc_list(entries: list[dict]) -> str:
 
 
 def _html_escape(text: str) -> str:
-    return (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
+
+def _title_attr(title_html: str) -> str:
+    """
+    m["title"] already went through _rich_text_to_html, which escapes
+    &/</> but not quotes — safe to drop into HTML text nodes as-is, but
+    needs quotes escaped before it can go inside an attribute value
+    (alt="...", content="...") without breaking out of it.
+    """
+    return title_html.replace('"', "&quot;")
+
+
+def _derive_description(html_body: str, max_len: int = 160) -> str:
+    """Fallback Open Graph/Twitter description from the rendered body when
+    the author hasn't set an explicit excerpt — strips tags, collapses
+    whitespace, and truncates to a clean word boundary."""
+    text = re.sub(r"<[^>]+>", " ", html_body)
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= max_len:
+        return text
+    return text[:max_len].rsplit(" ", 1)[0] + "…"
 
 
 # ---------------------------------------------------------------------------
@@ -549,7 +575,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/favicon.ico">
   <title>{title}</title>
-  <meta name="description" content="{title}">
+  {og_meta_html}
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1001,6 +1027,8 @@ def _render_html(
     api_base_url: str = "",
     image_url_map: dict | None = None,
     author_avatar_url: str = "",
+    cover_image_url: str = "",
+    excerpt: str = "",
 ) -> str:
     """Assembles the final HTML string from page data. Returns HTML string."""
     meta_raw = page_data["meta"]
@@ -1012,7 +1040,10 @@ def _render_html(
     toc_entries = _extract_toc(blocks)
     heading_anchors = {e["notion_id"]: e["anchor"] for e in toc_entries}
 
-    cover_html = ""
+    cover_html = (
+        f'<img class="cover-image" src="{cover_image_url}" alt="{_title_attr(m["title"])}">'
+        if cover_image_url else ""
+    )
 
     tags_html = ""
     if m["tags"]:
@@ -1061,6 +1092,30 @@ def _render_html(
     else:
         body = body.replace('<nav id="toc-placeholder" aria-label="Table of contents"></nav>', "")
 
+    description = excerpt.strip() or _derive_description(body)
+    canonical_url = f"https://www.notohub.com/{author_slug}/{current_slug}/" if author_slug and current_slug else ""
+
+    og_tags = [
+        '<meta property="og:type" content="article">',
+        '<meta property="og:site_name" content="NotoHub">',
+        f'<meta property="og:title" content="{_title_attr(m["title"])}">',
+    ]
+    if description:
+        og_tags.append(f'<meta name="description" content="{_html_escape(description)}">')
+        og_tags.append(f'<meta property="og:description" content="{_html_escape(description)}">')
+        og_tags.append(f'<meta name="twitter:description" content="{_html_escape(description)}">')
+    if canonical_url:
+        og_tags.append(f'<link rel="canonical" href="{canonical_url}">')
+        og_tags.append(f'<meta property="og:url" content="{canonical_url}">')
+    if cover_image_url:
+        og_tags.append(f'<meta property="og:image" content="{cover_image_url}">')
+        og_tags.append(f'<meta name="twitter:image" content="{cover_image_url}">')
+        og_tags.append('<meta name="twitter:card" content="summary_large_image">')
+    else:
+        og_tags.append('<meta name="twitter:card" content="summary">')
+    og_tags.append(f'<meta name="twitter:title" content="{_title_attr(m["title"])}">')
+    og_meta_html = "\n  ".join(og_tags)
+
     more_from_html = ""
     if author_slug and api_base_url:
         more_from_html = (
@@ -1073,6 +1128,7 @@ def _render_html(
 
     return _HTML_TEMPLATE.format(
         title=m["title"],
+        og_meta_html=og_meta_html,
         cover_html=cover_html,
         tags_html=tags_html,
         avatar_html=avatar_html,
@@ -1098,6 +1154,8 @@ def render_page_data(
     api_base_url: str = "",
     image_url_map: dict | None = None,
     author_avatar_url: str = "",
+    cover_image_url: str = "",
+    excerpt: str = "",
 ) -> str:
     """
     Render pre-fetched page data to HTML without making another API call.
@@ -1112,6 +1170,9 @@ def render_page_data(
         image_url_map:     Mapping of Notion block IDs to S3-hosted image URLs.
         author_avatar_url: Author's uploaded profile picture, if any — falls back to
                            an initial-letter avatar when not provided.
+        cover_image_url:   Permanent (non-expiring) cover image URL, if the page has one.
+        excerpt:           Short summary used for the Open Graph/Twitter description —
+                           falls back to a snippet of the body text when not provided.
     """
     return _render_html(
         page_data,
@@ -1119,6 +1180,8 @@ def render_page_data(
         author_slug=author_slug,
         current_slug=current_slug,
         api_base_url=api_base_url,
+        cover_image_url=cover_image_url,
+        excerpt=excerpt,
         image_url_map=image_url_map,
         author_avatar_url=author_avatar_url,
     )
