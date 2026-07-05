@@ -2,7 +2,7 @@ import json
 
 from lib.dynamodb import get_article_by_slug, list_articles, list_articles_by_author
 from lib.s3 import get_article_html
-from lib.response import ok, public_ok, not_found, server_error
+from lib.response import public_ok, not_found, server_error
 
 
 def handle_list(event: dict) -> dict:
@@ -24,7 +24,7 @@ def handle_list(event: dict) -> dict:
                 )
             ]
 
-        return ok({
+        return public_ok({
             "items": items,
             "total": len(items),
             "page": page,
@@ -70,6 +70,6 @@ def handle_detail(event: dict, slug: str) -> dict:
             "notionLastEditedAt": record["notionLastEditedAt"],
         }
 
-        return ok(article)
+        return public_ok(article)
     except Exception as exc:
         return server_error(exc)
