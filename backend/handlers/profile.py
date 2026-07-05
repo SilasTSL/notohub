@@ -235,7 +235,8 @@ def handle_public_articles(event: dict) -> dict:
     Public endpoint — returns a user's published articles for display on their
     profile page. No auth required; CORS open (*).
 
-    Only returns { title, slug, publishedAt } per article — no internal fields.
+    Only returns display fields used by the profile card template — no
+    internal fields like notionPageId/s3Key/author id.
     """
     qs = event.get("queryStringParameters") or {}
     username = (qs.get("username") or "").strip()
@@ -257,6 +258,9 @@ def handle_public_articles(event: dict) -> dict:
             "title": a.get("title", ""),
             "slug": a.get("slug", ""),
             "publishedAt": a.get("publishedAt", ""),
+            "excerpt": a.get("excerpt", ""),
+            "coverImageUrl": a.get("coverImageUrl"),
+            "tags": a.get("tags", []),
         }
         for a in articles
     ]

@@ -656,12 +656,23 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 
     /* ── Cover ── */
     .cover-image {{
-      width: 100%; max-height: 480px;
+      width: 100%; height: 320px;
       object-fit: cover; display: block;
     }}
 
     /* ── Article wrapper ── */
+    /* Article + TOC sidebar share a grid row so the sidebar sits in its own
+       column (never pushed around by the article's height) while staying
+       perfectly centered — the two 1fr rails are equal whether or not the
+       sidebar column has visible content. */
+    .content-row {{
+      display: grid;
+      grid-template-columns: 1fr minmax(0, var(--max-w)) 1fr;
+      align-items: start;
+    }}
     article {{
+      grid-column: 2;
+      grid-row: 1;
       max-width: var(--max-w);
       margin: 0 auto;
       padding: 3rem 1.5rem 6rem;
@@ -687,12 +698,20 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     .toc-list .toc-level-3 {{ padding-left: 1.8rem; font-size: 0.8rem; }}
 
     /* Floating sidebar — only shown once there's room beside the article
-       column without overlapping it (roughly max-w + two toc-widths). */
+       column without overlapping it (roughly max-w + two toc-widths).
+       Sits in the grid's third column (see .content-row) so its natural
+       position is beside the article, below the cover — sticky then pins
+       it just under the nav once scrolling would carry it past that point,
+       instead of floating at a fixed spot for the whole page. */
     .toc-sidebar {{
       display: none;
-      position: fixed;
+      grid-column: 3;
+      grid-row: 1;
+      justify-self: start;
+      margin-left: var(--toc-gap);
+      margin-top: 3rem;
+      position: sticky;
       top: 96px;
-      left: calc(50% + (var(--max-w) / 2) + var(--toc-gap));
       width: var(--toc-w);
       max-height: calc(100vh - 140px);
       overflow-y: auto;
@@ -954,6 +973,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 
   {cover_html}
 
+  <div class="content-row">
   {toc_sidebar_html}
 
   <article>
@@ -976,6 +996,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 
     {body}
   </article>
+  </div>
 
 {more_from_html}
   <footer>

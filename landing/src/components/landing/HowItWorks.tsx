@@ -1,5 +1,3 @@
-import ScreenshotPlaceholder from './ScreenshotPlaceholder'
-
 const STEPS = [
   {
     n: '1',
@@ -38,11 +36,21 @@ export default function HowItWorks() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          <div>
-            <ScreenshotPlaceholder label="Screenshot: Publish modal — paste a Notion link, pick a slug" aspect="aspect-[4/3]" />
+          <div className="aspect-[4/3] rounded-xl border border-[#e6e6e6] shadow-sm overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/notion-link-modal.png"
+              alt="Publish modal — paste a Notion link, pick a slug"
+              className="w-full h-full object-cover object-top"
+            />
           </div>
-          <div>
-            <ScreenshotPlaceholder label="Screenshot: A published article on NotoHub" aspect="aspect-[4/3]" />
+          <div className="aspect-[4/3] rounded-xl border border-[#e6e6e6] shadow-sm overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/published-article.png"
+              alt="A published article on NotoHub"
+              className="w-full h-full object-cover object-top"
+            />
           </div>
         </div>
       </div>

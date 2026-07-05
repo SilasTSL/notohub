@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import ScreenshotPlaceholder from './ScreenshotPlaceholder'
 
 const APP_URL = 'https://app.notohub.com'
 
@@ -42,7 +41,12 @@ export default function Hero() {
       </p>
 
       <div className="mt-14 max-w-4xl mx-auto">
-        <ScreenshotPlaceholder label="Screenshot: NotoHub dashboard — your articles at a glance" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/index-example.png"
+          alt="A NotoHub author profile page, with published articles"
+          className="w-full h-auto rounded-xl border border-[#e6e6e6] shadow-sm"
+        />
       </div>
     </section>
   )

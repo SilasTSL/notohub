@@ -40,6 +40,26 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
   const viewUrl = `https://www.notohub.com/${username}/${article.slug}/`
   const colour = accentColour(article.title)
 
+  function Thumb({ opacity }: { opacity: number }) {
+    if (article.coverImageUrl) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={article.coverImageUrl}
+          alt=""
+          className="h-36 w-full object-cover"
+        />
+      )
+    }
+    return (
+      <div className="h-36 w-full flex items-center justify-center" style={{ backgroundColor: colour + '18' }}>
+        <span className="font-heading font-bold text-6xl select-none" style={{ color: colour, opacity }}>
+          {article.title.charAt(0).toUpperCase()}
+        </span>
+      </div>
+    )
+  }
+
   // Warn on tab close/refresh/navigation mid delete-or-republish — leaving
   // partway through can abandon the operation in an inconsistent state.
   useEffect(() => {
@@ -76,11 +96,7 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
   if (mode === 'confirm-delete') {
     return (
       <div className="flex flex-col rounded-xl border border-red-200 bg-red-50 overflow-hidden">
-        <div className="h-36 w-full flex items-center justify-center" style={{ backgroundColor: colour + '18' }}>
-          <span className="font-heading font-bold text-6xl select-none" style={{ color: colour, opacity: 0.2 }}>
-            {article.title.charAt(0).toUpperCase()}
-          </span>
-        </div>
+        <Thumb opacity={0.2} />
         <div className="p-4 flex flex-col gap-3">
           <p className="text-sm text-[#1a1a1a]">
             Delete <span className="font-medium">{article.title}</span>?
@@ -121,11 +137,7 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
   if (mode === 'confirm-refresh') {
     return (
       <div className="flex flex-col rounded-xl border border-[#1a8917] bg-[#f0faf0] overflow-hidden">
-        <div className="h-36 w-full flex items-center justify-center" style={{ backgroundColor: colour + '18' }}>
-          <span className="font-heading font-bold text-6xl select-none" style={{ color: colour, opacity: 0.2 }}>
-            {article.title.charAt(0).toUpperCase()}
-          </span>
-        </div>
+        <Thumb opacity={0.2} />
         <div className="p-4 flex flex-col gap-3">
           {busy ? (
             <div className="flex flex-col items-center gap-2 py-2">
@@ -176,11 +188,7 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
   // ── Default card view ───────────────────────────────────────────────────
   return (
     <div className="group flex flex-col rounded-xl border border-[#e6e6e6] overflow-hidden hover:border-[#1a8917] transition-colors">
-      <div className="h-36 w-full flex items-center justify-center" style={{ backgroundColor: colour + '18' }}>
-        <span className="font-heading font-bold text-6xl select-none" style={{ color: colour, opacity: 0.25 }}>
-          {article.title.charAt(0).toUpperCase()}
-        </span>
-      </div>
+      <Thumb opacity={0.25} />
 
       <div className="flex flex-col gap-1.5 p-4 flex-1">
         <h3 className="font-semibold text-[#1a1a1a] group-hover:text-[#1a8917] transition-colors line-clamp-2 text-sm leading-snug">

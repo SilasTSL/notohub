@@ -10,6 +10,7 @@ export interface Article {
   title: string
   publishedAt: string
   excerpt?: string
+  coverImageUrl?: string | null
   notionPageId?: string
   notionLink?: string
 }
