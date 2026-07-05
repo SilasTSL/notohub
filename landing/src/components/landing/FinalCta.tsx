@@ -19,7 +19,7 @@ export default function FinalCta() {
           </a>
         </div>
         <p className="mt-4 text-xs text-[#b0b0b0]">
-          No credit card. No hosting to manage. Just write.
+          No credit card. No code. Just write.
         </p>
       </div>
     </section>

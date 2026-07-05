@@ -9,7 +9,7 @@ const STEPS = [
   {
     n: '2',
     title: 'Paste the link',
-    body: 'Drop your Notion page URL into NotoHub and choose a URL slug. Add a cover image and tags if you want.',
+    body: 'Drop your Notion page URL into NotoHub and choose a URL slug. Add a cover image if you want.',
   },
   {
     n: '3',

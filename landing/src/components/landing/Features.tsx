@@ -28,13 +28,6 @@ const FEATURES = [
     ),
   },
   {
-    title: 'Organize with tags',
-    body: 'Group your articles however makes sense to you — by topic, by series, by whatever. Readers can browse by tag too.',
-    icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 9V4a1 1 0 011-1z" />
-    ),
-  },
-  {
     title: 'Built-in discovery',
     body: 'Every article ends with "More from this author," so readers who like your writing naturally find the rest of it.',
     icon: (
@@ -49,19 +42,20 @@ export default function Features() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <h2 className="font-heading text-3xl font-bold text-[#1a1a1a] tracking-tight">
-            Everything you need. Nothing you don&apos;t.
+            You write. We handle the rest.
           </h2>
           <p className="mt-3 text-[#6b6b6b] text-lg">
-            NotoHub isn&apos;t trying to be a full CMS. It does one thing — turn Notion pages
-            into a clean, shareable blog — and does it well.
+            No themes to pick, no plugins to configure, nothing to deploy.
+            NotoHub does one thing — turn a Notion page into a real blog — so
+            you never have to think like a developer.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-wrap justify-center gap-6">
           {FEATURES.map(({ title, body, icon }) => (
             <div
               key={title}
-              className="bg-white rounded-2xl border border-[#e6e6e6] p-6 flex flex-col gap-3"
+              className="bg-white rounded-2xl border border-[#e6e6e6] p-6 flex flex-col gap-3 w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
             >
               <div className="w-10 h-10 rounded-lg bg-[#f0faf0] flex items-center justify-center text-[#1a8917] shrink-0">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

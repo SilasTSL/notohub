@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import Logo from '@/components/Logo'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -52,8 +53,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-icon.png" alt="NotoHub" className="h-12 w-auto mx-auto" />
+          <Logo className="justify-center" imgClassName="h-12" textClassName="text-2xl" />
           <p className="text-sm text-[#6b6b6b] mt-3">Sign in to your account</p>
         </div>
 

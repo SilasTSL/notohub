@@ -168,10 +168,14 @@ def render_profile_index_shell(
       display: flex; align-items: center; justify-content: space-between;
     }}
     .nav-logo {{
-      display: flex; align-items: center;
+      display: flex; align-items: center; gap: 0.5rem;
       text-decoration: none;
     }}
     .nav-logo img {{ height: 28px; width: auto; display: block; }}
+    .nav-logo-text {{
+      font-family: var(--heading); font-weight: 700; font-size: 1.05rem;
+      letter-spacing: -0.02em; color: var(--ink);
+    }}
 
     /* ── Page wrapper ── */
     .page {{
@@ -376,7 +380,7 @@ def render_profile_index_shell(
 <body>
 
   <nav class="top-bar">
-    <a class="nav-logo" href="https://www.notohub.com/"><img src="/logo-icon.png" alt="NotoHub"></a>
+    <a class="nav-logo" href="https://www.notohub.com/"><img src="/logo-icon.png" alt=""><span class="nav-logo-text">NotoHub</span></a>
   </nav>
 
   <div class="profile-header">

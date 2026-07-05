@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import Logo from '@/components/Logo'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
@@ -17,8 +18,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-20 bg-white border-b border-[#e6e6e6]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center" aria-label="NotoHub">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-icon.png" alt="NotoHub" className="h-8 w-auto" />
+          <Logo />
         </Link>
         {user && (
           <div className="flex items-center gap-5 text-sm">

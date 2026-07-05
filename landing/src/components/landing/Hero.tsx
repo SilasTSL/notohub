@@ -7,19 +7,19 @@ export default function Hero() {
   return (
     <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
       <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-[#1a8917] bg-[#f0faf0] border border-[#b8ddb8] rounded-full px-3 py-1 mb-6">
-        Notion → live blog, instantly
+        For writers, not developers
       </span>
 
       <h1 className="font-heading text-5xl sm:text-6xl font-bold text-[#1a1a1a] tracking-tight leading-[1.08]">
-        Your Notion pages,
+        Start a blog without
         <br />
-        published to the world.
+        touching a line of code.
       </h1>
 
       <p className="mt-6 text-xl text-[#6b6b6b] max-w-2xl mx-auto leading-relaxed">
-        Skip the static site generators, the hosting configs, the DNS headaches.
-        Write in Notion like you already do — NotoHub turns any page into a fast,
-        clean article with its own URL. Free, and live in under a minute.
+        You want to write, not fight a site builder. Write in Notion exactly like
+        you already do — NotoHub turns any page into a real, good-looking blog
+        with its own URL. No design decisions, no hosting to figure out.
       </p>
 
       <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
@@ -38,7 +38,7 @@ export default function Hero() {
       </div>
 
       <p className="mt-4 text-xs text-[#b0b0b0]">
-        No credit card. No hosting to manage. Just write.
+        No credit card. No code. Just write.
       </p>
 
       <div className="mt-14 max-w-4xl mx-auto">

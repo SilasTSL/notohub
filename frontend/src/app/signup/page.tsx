@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { resendSignUpCode } from 'aws-amplify/auth'
+import Logo from '@/components/Logo'
 
 // ─── Step 1 — Sign Up Form ───────────────────────────────────────────────────
 
@@ -349,8 +350,7 @@ export default function SignupPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-icon.png" alt="NotoHub" className="h-12 w-auto mx-auto" />
+          <Logo className="justify-center" imgClassName="h-12" textClassName="text-2xl" />
           <p className="text-sm text-[#6b6b6b] mt-3">
             {step === 1 ? 'Create your account' : 'Verify your email'}
           </p>
