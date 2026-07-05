@@ -43,7 +43,7 @@ export default function ArticlesPage() {
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 space-y-12">
       {/* Page header */}
       <div className="border-b border-[#e6e6e6] pb-8">
-        <h1 className="font-serif text-4xl font-bold text-[#1a1a1a] tracking-tight">Articles</h1>
+        <h1 className="font-heading text-4xl font-bold text-[#1a1a1a] tracking-tight">Articles</h1>
         <p className="text-[#6b6b6b] mt-2 text-lg">
           Ideas, stories, and tutorials — published straight from Notion.
         </p>
@@ -72,7 +72,7 @@ export default function ArticlesPage() {
                 />
               ) : (
                 <div className="w-full h-60 sm:h-72 bg-gradient-to-br from-[#f0faf0] to-[#dcfce7] flex items-center justify-center">
-                  <span className="font-serif font-bold text-[10rem] text-[#1a8917] opacity-20 select-none leading-none">
+                  <span className="font-heading font-bold text-[10rem] text-[#1a8917] opacity-20 select-none leading-none">
                     {featured.title.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -81,7 +81,7 @@ export default function ArticlesPage() {
                 <span className="text-xs font-semibold uppercase tracking-widest text-[#1a8917]">
                   Latest
                 </span>
-                <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] group-hover:text-[#1a8917] transition-colors leading-snug">
+                <h2 className="font-heading text-2xl font-bold text-[#1a1a1a] group-hover:text-[#1a8917] transition-colors leading-snug">
                   {featured.title}
                 </h2>
                 {featured.excerpt && (
@@ -117,7 +117,7 @@ export default function ArticlesPage() {
           {/* Rest of the articles */}
           {rest.length > 0 && (
             <div>
-              <h2 className="font-serif text-xl font-semibold text-[#1a1a1a] mb-6">
+              <h2 className="font-heading text-xl font-semibold text-[#1a1a1a] mb-6">
                 More articles
               </h2>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -72,7 +72,7 @@ function ProfilePreview({ username, bio, avatarUrl, socialLinks }: PreviewProps)
         />
       ) : (
         <div
-          className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-2xl font-serif font-semibold select-none"
+          className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-2xl font-heading font-semibold select-none"
           style={{ backgroundColor: colour }}
         >
           {initial}
@@ -80,7 +80,7 @@ function ProfilePreview({ username, bio, avatarUrl, socialLinks }: PreviewProps)
       )}
 
       {/* Username */}
-      <p className="font-serif text-lg font-semibold text-[#1a1a1a] mb-1">{username || '—'}</p>
+      <p className="font-heading text-lg font-semibold text-[#1a1a1a] mb-1">{username || '—'}</p>
 
       {/* Bio */}
       {bio && (
@@ -306,7 +306,7 @@ export default function ProfilePage() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
         {/* Heading */}
         <div className="mb-8">
-          <h1 className="font-serif text-2xl font-bold text-[#1a1a1a]">Set Up Your Profile</h1>
+          <h1 className="font-heading text-2xl font-bold text-[#1a1a1a]">Set Up Your Profile</h1>
           <p className="text-sm text-[#6b6b6b] mt-1">
             This is what visitors see at{' '}
             <span className="text-[#1a8917]">notohub.com/{user.username}</span>
@@ -334,7 +334,7 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <div
-                      className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-serif font-semibold select-none"
+                      className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-heading font-semibold select-none"
                       style={{ backgroundColor: avatarColour(user.username) }}
                     >
                       {user.username[0].toUpperCase()}

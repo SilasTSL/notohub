@@ -210,7 +210,7 @@ export default function DashboardPage() {
           <main className="flex-1 min-w-0">
             {/* Heading row */}
             <div className="flex items-center justify-between mb-5">
-              <h1 className="font-serif text-2xl font-bold text-[#1a1a1a]">
+              <h1 className="font-heading text-2xl font-bold text-[#1a1a1a]">
                 My Articles
               </h1>
               <button

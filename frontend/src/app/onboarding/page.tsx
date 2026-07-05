@@ -83,7 +83,7 @@ export default function OnboardingPage() {
         <div className="bg-white rounded-2xl border border-[#e6e6e6] shadow-sm px-8 py-8">
           {step === 1 ? (
             <div>
-              <h1 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-2">
+              <h1 className="font-heading text-2xl font-bold text-[#1a1a1a] mb-2">
                 Connect Notion
               </h1>
               <p className="text-sm text-[#6b6b6b] leading-relaxed mb-6">
@@ -123,7 +123,7 @@ export default function OnboardingPage() {
                 </svg>
               </div>
 
-              <h1 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-2">
+              <h1 className="font-heading text-2xl font-bold text-[#1a1a1a] mb-2">
                 Notion connected!
               </h1>
               <p className="text-sm text-[#6b6b6b] mb-8">

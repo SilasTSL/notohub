@@ -129,14 +129,14 @@ def render_profile_index_shell(
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&amp;family=Source+Sans+3:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
 
     :root {{
-      --serif:      "Lora", Georgia, serif;
-      --sans:       "Source Sans 3", system-ui, sans-serif;
+      --heading:    "DM Sans", ui-sans-serif, system-ui, sans-serif;
+      --sans:       "Inter", ui-sans-serif, system-ui, sans-serif;
       --ink:        #1a1a1a;
       --ink-muted:  #6b6b6b;
       --ink-faint:  #b0b0b0;
@@ -167,7 +167,7 @@ def render_profile_index_shell(
       display: flex; align-items: center; justify-content: space-between;
     }}
     .nav-logo {{
-      font-family: var(--serif);
+      font-family: var(--heading);
       font-weight: 700; font-size: 1.1rem;
       color: var(--ink); text-decoration: none;
       letter-spacing: -0.02em;
@@ -203,14 +203,14 @@ def render_profile_index_shell(
       width: 80px; height: 80px;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-family: var(--serif);
+      font-family: var(--heading);
       font-size: 2rem; font-weight: 700;
       color: #fff;
       user-select: none;
     }}
 
     .profile-username {{
-      font-family: var(--serif);
+      font-family: var(--heading);
       font-size: clamp(1.6rem, 4vw, 2rem);
       font-weight: 700;
       color: var(--ink);
@@ -241,7 +241,7 @@ def render_profile_index_shell(
     }}
 
     .section-heading {{
-      font-family: var(--serif);
+      font-family: var(--heading);
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--ink);
@@ -285,7 +285,7 @@ def render_profile_index_shell(
       display: flex; align-items: center; justify-content: center;
     }}
     .card-thumb-letter {{
-      font-family: var(--serif);
+      font-family: var(--heading);
       font-weight: 700;
       font-size: 5rem;
       user-select: none;
@@ -316,7 +316,7 @@ def render_profile_index_shell(
     }}
 
     .card-title {{
-      font-family: var(--serif);
+      font-family: var(--heading);
       font-size: 0.95rem;
       font-weight: 600;
       color: var(--ink);

@@ -8,7 +8,7 @@ export default function Home() {
       {/* Nav */}
       <header className="sticky top-0 z-20 bg-white border-b border-[#e6e6e6]">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <span className="font-serif text-xl font-bold text-[#1a1a1a] tracking-tight">
+          <span className="font-heading text-xl font-bold text-[#1a1a1a] tracking-tight">
             NotoHub
           </span>
           <div className="flex items-center gap-5 text-sm">
@@ -33,7 +33,7 @@ export default function Home() {
 
       {/* Hero */}
       <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-24 text-center">
-        <h1 className="font-serif text-5xl sm:text-6xl font-bold text-[#1a1a1a] tracking-tight leading-tight">
+        <h1 className="font-heading text-5xl sm:text-6xl font-bold text-[#1a1a1a] tracking-tight leading-tight">
           Your Notion notes,
           <br />
           published to the world
@@ -61,7 +61,7 @@ export default function Home() {
       {/* How it works */}
       <section className="border-t border-[#e6e6e6] bg-[#f9f9f9] py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <h2 className="font-serif text-3xl font-bold text-center text-[#1a1a1a] mb-14">
+          <h2 className="font-heading text-3xl font-bold text-center text-[#1a1a1a] mb-14">
             How it works
           </h2>
           <div className="grid sm:grid-cols-3 gap-10 text-center">
@@ -83,10 +83,10 @@ export default function Home() {
               },
             ].map(({ n, title, body }) => (
               <div key={n} className="flex flex-col items-center gap-4">
-                <div className="w-11 h-11 rounded-full bg-[#1a8917] text-white flex items-center justify-center font-serif font-bold text-lg shrink-0">
+                <div className="w-11 h-11 rounded-full bg-[#1a8917] text-white flex items-center justify-center font-heading font-bold text-lg shrink-0">
                   {n}
                 </div>
-                <h3 className="font-serif font-semibold text-lg text-[#1a1a1a]">{title}</h3>
+                <h3 className="font-heading font-semibold text-lg text-[#1a1a1a]">{title}</h3>
                 <p className="text-[#6b6b6b] text-sm leading-relaxed max-w-xs mx-auto">{body}</p>
               </div>
             ))}
@@ -97,7 +97,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-[#e6e6e6] py-8">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="font-serif font-bold text-[#1a1a1a]">NotoHub</span>
+          <span className="font-heading font-bold text-[#1a1a1a]">NotoHub</span>
           <div className="flex gap-6 text-sm text-[#6b6b6b]">
             <Link href="/articles" className="hover:text-[#1a1a1a] transition-colors">
               Articles

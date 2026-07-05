@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Article } from '@/types'
 
 export type { Article }
@@ -40,6 +40,18 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
   const viewUrl = `https://www.notohub.com/${username}/${article.slug}/`
   const colour = accentColour(article.title)
 
+  // Warn on tab close/refresh/navigation mid delete-or-republish — leaving
+  // partway through can abandon the operation in an inconsistent state.
+  useEffect(() => {
+    if (!busy) return
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [busy])
+
   async function handleDelete() {
     setBusy(true)
     try {
@@ -65,7 +77,7 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
     return (
       <div className="flex flex-col rounded-xl border border-red-200 bg-red-50 overflow-hidden">
         <div className="h-36 w-full flex items-center justify-center" style={{ backgroundColor: colour + '18' }}>
-          <span className="font-serif font-bold text-6xl select-none" style={{ color: colour, opacity: 0.2 }}>
+          <span className="font-heading font-bold text-6xl select-none" style={{ color: colour, opacity: 0.2 }}>
             {article.title.charAt(0).toUpperCase()}
           </span>
         </div>
@@ -73,6 +85,11 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
           <p className="text-sm text-[#1a1a1a]">
             Delete <span className="font-medium">{article.title}</span>?
           </p>
+          {busy && (
+            <p className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
+              Please don&apos;t close or refresh this page until deleting finishes.
+            </p>
+          )}
           <div className="flex gap-2">
             <button
               onClick={() => setMode('view')}
@@ -105,7 +122,7 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
     return (
       <div className="flex flex-col rounded-xl border border-[#1a8917] bg-[#f0faf0] overflow-hidden">
         <div className="h-36 w-full flex items-center justify-center" style={{ backgroundColor: colour + '18' }}>
-          <span className="font-serif font-bold text-6xl select-none" style={{ color: colour, opacity: 0.2 }}>
+          <span className="font-heading font-bold text-6xl select-none" style={{ color: colour, opacity: 0.2 }}>
             {article.title.charAt(0).toUpperCase()}
           </span>
         </div>
@@ -119,6 +136,9 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
               <p className="text-xs text-[#1a8917] font-medium text-center">
                 Re-publishing from Notion…<br />
                 <span className="text-[#6b6b6b] font-normal">This can take up to 2 minutes.</span>
+              </p>
+              <p className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
+                Please don&apos;t close or refresh this page until it finishes.
               </p>
             </div>
           ) : (
@@ -157,7 +177,7 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
   return (
     <div className="group flex flex-col rounded-xl border border-[#e6e6e6] overflow-hidden hover:border-[#1a8917] transition-colors">
       <div className="h-36 w-full flex items-center justify-center" style={{ backgroundColor: colour + '18' }}>
-        <span className="font-serif font-bold text-6xl select-none" style={{ color: colour, opacity: 0.25 }}>
+        <span className="font-heading font-bold text-6xl select-none" style={{ color: colour, opacity: 0.25 }}>
           {article.title.charAt(0).toUpperCase()}
         </span>
       </div>

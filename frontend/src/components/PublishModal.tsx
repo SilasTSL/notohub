@@ -36,6 +36,18 @@ export default function PublishModal({ username, onClose, onPublished }: Publish
     return () => clearInterval(id)
   }, [loading])
 
+  // Warn on tab close/refresh/navigation while publishing is in flight —
+  // leaving mid-request abandons the Notion import with no way to resume it.
+  useEffect(() => {
+    if (!loading) return
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [loading])
+
   const published = publishedUrl !== null
   const displaySlug = slug || 'my-article-title'
   const previewUrl = `notohub.com/${username}/${displaySlug}`
@@ -131,7 +143,7 @@ export default function PublishModal({ username, onClose, onPublished }: Publish
                 </svg>
               </div>
 
-              <h2 className="font-serif text-xl font-bold text-[#1a1a1a] mb-2">
+              <h2 className="font-heading text-xl font-bold text-[#1a1a1a] mb-2">
                 Publishing your article…
               </h2>
 
@@ -158,10 +170,14 @@ export default function PublishModal({ username, onClose, onPublished }: Publish
               <p className="text-xs text-[#b0b0b0] max-w-xs">
                 Importing from Notion can take up to 2 minutes — hang tight while we fetch and format your content.
               </p>
+
+              <p className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-4">
+                Please don&apos;t close or refresh this page until publishing finishes.
+              </p>
             </div>
           ) : (
             <>
-              <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-6">
+              <h2 className="font-heading text-2xl font-bold text-[#1a1a1a] mb-6">
                 Publish New Article
               </h2>
 
@@ -235,7 +251,7 @@ export default function PublishModal({ username, onClose, onPublished }: Publish
         ) : (
           <div className="text-center py-2">
             <div className="text-5xl mb-5">🎉</div>
-            <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-2">
+            <h2 className="font-heading text-2xl font-bold text-[#1a1a1a] mb-2">
               Article published!
             </h2>
             <p className="text-sm text-[#6b6b6b] mb-6">

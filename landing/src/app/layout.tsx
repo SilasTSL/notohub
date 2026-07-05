@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Lora } from 'next/font/google'
+import { Inter, DM_Sans } from 'next/font/google'
 import './globals.css'
 
 const inter = Inter({
@@ -8,9 +8,9 @@ const inter = Inter({
   display: 'swap',
 })
 
-const lora = Lora({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  variable: '--font-lora',
+  variable: '--font-heading',
   display: 'swap',
 })
 
@@ -30,7 +30,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${lora.variable}`}>
+    <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
       <body className="font-sans bg-white text-[#1a1a1a]">{children}</body>
     </html>
   )

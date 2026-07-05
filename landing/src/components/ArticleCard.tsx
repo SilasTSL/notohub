@@ -45,7 +45,7 @@ export default function ArticleCard({ article }: Props) {
           style={{ backgroundColor: colour + '18' }}
         >
           <span
-            className="font-serif font-bold text-7xl select-none"
+            className="font-heading font-bold text-7xl select-none"
             style={{ color: colour, opacity: 0.25 }}
           >
             {article.title.charAt(0).toUpperCase()}

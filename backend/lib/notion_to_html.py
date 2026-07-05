@@ -495,7 +495,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Syntax highlighting -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
@@ -506,8 +506,8 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
 
     :root {{
-      --serif:      "Lora", Georgia, serif;
-      --sans:       "Source Sans 3", system-ui, sans-serif;
+      --heading:    "DM Sans", ui-sans-serif, system-ui, sans-serif;
+      --sans:       "Inter", ui-sans-serif, system-ui, sans-serif;
       --ink:        #1a1a1a;
       --ink-muted:  #6b6b6b;
       --ink-faint:  #b3b3b3;
@@ -520,7 +520,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 
     html {{ font-size: 18px; scroll-behavior: smooth; }}
     body {{
-      font-family: var(--serif);
+      font-family: var(--sans);
       color: var(--ink);
       background: var(--bg);
       line-height: 1.8;
@@ -592,7 +592,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     }}
 
     .article-title {{
-      font-family: var(--serif);
+      font-family: var(--heading);
       font-size: clamp(2rem, 5vw, 2.7rem);
       font-weight: 600; line-height: 1.2;
       letter-spacing: -0.02em;
@@ -626,7 +626,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     p {{ margin-bottom: 1.5rem; }}
 
     h1, h2, h3 {{
-      font-family: var(--serif);
+      font-family: var(--heading);
       font-weight: 600; line-height: 1.25;
       letter-spacing: -0.02em;
       color: var(--ink);
@@ -785,7 +785,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     .more-from-card:last-child {{ border-bottom: none; }}
     .more-from-card:hover .more-from-card-title {{ color: var(--accent); }}
     .more-from-card-title {{
-      font-family: var(--serif); font-size: 1rem; font-weight: 600;
+      font-family: var(--heading); font-size: 1rem; font-weight: 600;
       line-height: 1.3; transition: color 0.15s;
     }}
     .more-from-card-date {{

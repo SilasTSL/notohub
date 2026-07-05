@@ -18,7 +18,7 @@ export default function Navbar() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <Link
           href="/dashboard"
-          className="font-serif text-xl font-bold text-[#1a1a1a] tracking-tight"
+          className="font-heading text-xl font-bold text-[#1a1a1a] tracking-tight"
         >
           NotoHub
         </Link>

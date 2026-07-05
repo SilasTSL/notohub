@@ -5,7 +5,7 @@
 @layer base {
   :root {
     --font-inter: "Inter", sans-serif;
-    --font-lora: "Lora", serif;
+    --font-heading: "DM Sans", sans-serif;
     --font-mono: "JetBrains Mono", monospace;
   }
 

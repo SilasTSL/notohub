@@ -5,7 +5,7 @@
 @layer base {
   :root {
     --font-inter: "Inter", sans-serif;
-    --font-lora: "Lora", serif;
+    --font-heading: "DM Sans", sans-serif;
     --font-mono: "JetBrains Mono", monospace;
   }
 
@@ -20,7 +20,7 @@
 
 @layer components {
   .prose-notohub {
-    @apply prose prose-gray max-w-none prose-headings:font-serif prose-headings:tracking-tight prose-a:text-[#1a8917] prose-a:no-underline hover:prose-a:underline;
+    @apply prose prose-gray max-w-none prose-headings:font-heading prose-headings:tracking-tight prose-a:text-[#1a8917] prose-a:no-underline hover:prose-a:underline;
   }
 }
 
