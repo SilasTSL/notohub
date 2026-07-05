@@ -28,7 +28,7 @@ def _record_to_metadata(record: dict) -> dict:
         "id": record["id"],
         "notionPageId": record.get("notionPageId", ""),
         "notionLink": record.get("notionLink", ""),
-        "title": record["title"],
+        "title": record.get("title", ""),
         "slug": record.get("slug", ""),
         "excerpt": record.get("excerpt", ""),
         "coverImageUrl": record.get("coverImageUrl"),
@@ -37,6 +37,10 @@ def _record_to_metadata(record: dict) -> dict:
         "publishedAt": record.get("publishedAt", record.get("createdAt", "")),
         "updatedAt": record.get("updatedAt", ""),
         "notionLastEditedAt": record.get("notionLastEditedAt", ""),
+        # "publishing" | "published" | "failed" — background job status, since
+        # publishing can take longer than API Gateway's 29s hard timeout.
+        "status": record.get("status", "published"),
+        "publishError": record.get("publishError"),
     }
 
 

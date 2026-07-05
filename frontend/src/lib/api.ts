@@ -35,6 +35,29 @@ export async function disconnectNotion(): Promise<void> {
 
 // ─── Articles ─────────────────────────────────────────────────────────────────
 
+interface ArticleJobStatus {
+  status: 'publishing' | 'published' | 'failed'
+  url: string | null
+  error: string | null
+}
+
+const POLL_INTERVAL_MS = 2500
+const POLL_TIMEOUT_MS = 2 * 60 * 1000 // matches the "up to 2 minutes" copy in the UI
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function getArticleJobStatus(slug: string): Promise<ArticleJobStatus> {
+  const res = await authFetch(`${API_URL}/v1/articles/${slug}`)
+  const body = await handleResponse<{ data: ArticleJobStatus }>(res)
+  return body.data
+}
+
+// Publishing can take longer than API Gateway's hard 29s integration
+// timeout (a Notion page with several images easily can), so the backend
+// starts a background job and returns immediately — this polls until it
+// actually finishes instead of waiting on one long-lived request.
 export async function publishArticle(
   notionUrl: string,
   slug: string
@@ -43,8 +66,20 @@ export async function publishArticle(
     method: 'POST',
     body: JSON.stringify({ notionUrl, slug }),
   })
-  const body = await handleResponse<{ data: { url: string } }>(res)
-  return body.data
+  await handleResponse<{ data: { status: string; slug: string } }>(res)
+
+  const deadline = Date.now() + POLL_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    await sleep(POLL_INTERVAL_MS)
+    const job = await getArticleJobStatus(slug)
+    if (job.status === 'published' && job.url) return { url: job.url }
+    if (job.status === 'failed') throw new Error(job.error ?? 'Publishing failed. Please try again.')
+    // else still "publishing" — keep polling
+  }
+
+  throw new Error(
+    "Still working on it — this is taking longer than usual. Check your dashboard in a bit; it'll show up once it's done."
+  )
 }
 
 export async function deleteArticle(slug: string): Promise<void> {

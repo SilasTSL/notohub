@@ -109,6 +109,17 @@ Resources:
                 - s3:GetObject
                 - s3:DeleteObject
               Resource: !Sub 'arn:aws:s3:::${S3BucketName}/*'
+            # Lets the function invoke itself asynchronously to run slow publish
+            # jobs in the background (API Gateway hard-caps at 29s; Lambda can
+            # run up to Globals.Timeout). Wildcarded on the SAM-generated name
+            # pattern ({stack}-NotohubFunction-{suffix}) instead of !GetAtt/!Ref
+            # on this same resource, which would be a circular dependency.
+            - Sid: SelfInvokeAsync
+              Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource:
+                - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-NotohubFunction-*'
       Events:
         # Catch-all for any path with segments
         ApiProxy:

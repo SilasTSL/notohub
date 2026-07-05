@@ -6,8 +6,9 @@ Routes:
   POST /auth/register                     → create DynamoDB user record (requires auth)
   GET  /auth/notion/connect               → return Notion OAuth URL (requires auth)
   GET  /auth/notion/callback              → exchange code, store token, redirect to frontend
-  POST /articles/publish                  → render Notion page and publish (requires auth)
+  POST /articles/publish                  → start a publish job, returns 202 (requires auth)
   GET  /v1/articles                       → list authenticated user's articles (requires auth)
+  GET  /v1/articles/{slug}                → poll a publish job's status (requires auth)
   DELETE /v1/articles/{slug}              → delete a user's article (requires auth)
   GET  /articles                          → list all published article metadata (public)
   GET  /articles/{slug}                   → article detail + HTML content (public)
@@ -28,7 +29,14 @@ from lib.response import no_content, not_found
 from handlers.articles import handle_list, handle_detail, handle_user_articles_public
 from handlers.article import handle_create, handle_publish
 from handlers.auth import handle_register, handle_notion_connect, handle_notion_callback
-from handlers.user_articles import handle_user_publish, handle_user_delete, handle_user_list
+from handlers.user_articles import (
+    handle_user_publish,
+    handle_user_delete,
+    handle_user_list,
+    handle_user_article_status,
+    run_publish_job,
+    PUBLISH_JOB_KIND,
+)
 from handlers.profile import (
     handle_get_profile,
     handle_save_profile,
@@ -52,6 +60,13 @@ _USER_PUBLIC_ARTICLES_RE = re.compile(r"^/users/([A-Za-z0-9][A-Za-z0-9\-]*)/arti
 
 
 def handler(event: dict[str, Any], context: Any) -> dict:
+    # Background job, invoked directly (Lambda-to-Lambda), never through API
+    # Gateway — no httpMethod/path present. Must be checked before anything
+    # below, which assumes an API Gateway-shaped event.
+    if event.get("_notohub_job") == PUBLISH_JOB_KIND:
+        run_publish_job(event)
+        return {}
+
     method: str = event.get("httpMethod", "GET").upper()
     path: str = event.get("path", "/").rstrip("/") or "/"
 
@@ -81,14 +96,18 @@ def handler(event: dict[str, Any], context: Any) -> dict:
 
     # ── POST /articles/publish ──────────────────────────────────────────────
     if method == "POST" and path == "/articles/publish":
-        return handle_user_publish(event)
+        return handle_user_publish(event, context)
 
     # ── GET /v1/articles ────────────────────────────────────────────────────
     if method == "GET" and path == "/v1/articles":
         return handle_user_list(event)
 
-    # ── DELETE /v1/articles/{slug} ──────────────────────────────────────────
+    # ── GET /v1/articles/{slug} — poll publish job status ────────────────────
     user_article_match = _USER_ARTICLE_RE.match(path)
+    if method == "GET" and user_article_match:
+        return handle_user_article_status(event, user_article_match.group(1))
+
+    # ── DELETE /v1/articles/{slug} ──────────────────────────────────────────
     if method == "DELETE" and user_article_match:
         return handle_user_delete(event, user_article_match.group(1))
 

@@ -189,6 +189,9 @@ export default function ArticleRow({ article, username, onDelete, onRefresh }: A
         {article.excerpt && (
           <p className="text-xs text-[#6b6b6b] line-clamp-2">{article.excerpt}</p>
         )}
+        <p className="text-xs font-mono text-[#b0b0b0] truncate" title={article.slug}>
+          /{article.slug}
+        </p>
         <p className="text-xs text-[#b0b0b0] mt-auto pt-2">
           {formatDate(article.publishedAt)}
         </p>

@@ -67,7 +67,10 @@ def put_article_html(username: str, slug: str, html: str) -> str:
         Key=key,
         Body=html.encode("utf-8"),
         ContentType="text/html; charset=utf-8",
-        CacheControl="public, max-age=3600",
+        # Matches put_profile_html's cache duration — short enough that a
+        # republish shows up quickly for the author checking their own work,
+        # without needing active CloudFront invalidation.
+        CacheControl="public, max-age=300",
     )
 
     return key

@@ -208,7 +208,8 @@ def _rich_text_to_html(rich_texts: list) -> str:
     return "".join(parts)
 
 
-def _list_item_to_html(block: dict, tag: str, depth: int, image_url_map: dict | None = None) -> str:
+def _list_item_to_html(block: dict, tag: str, depth: int, image_url_map: dict | None = None,
+    heading_anchors: dict | None = None) -> str:
     btype = block.get("type", "")
     data = block.get(btype, {})
     html_text = _rich_text_to_html(data.get("rich_text", []))
@@ -216,13 +217,14 @@ def _list_item_to_html(block: dict, tag: str, depth: int, image_url_map: dict | 
 
     inner = html_text
     if children:
-        inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
+        inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors)
 
     indent = "  " * depth
     return f"{indent}<li>{inner}</li>\n"
 
 
-def _block_to_html(block: dict, depth: int = 0, image_url_map: dict | None = None) -> str:
+def _block_to_html(block: dict, depth: int = 0, image_url_map: dict | None = None,
+    heading_anchors: dict | None = None) -> str:
     """Converts a single Notion block dict to an HTML string."""
     btype = block.get("type", "")
     data = block.get(btype, {})
@@ -234,31 +236,28 @@ def _block_to_html(block: dict, depth: int = 0, image_url_map: dict | None = Non
     if btype == "paragraph":
         inner = html_text or "&nbsp;"
         if children:
-            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
+            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors)
         return f"{indent}<p>{inner}</p>\n"
 
-    elif btype == "heading_1":
-        return f"{indent}<h1>{html_text}</h1>\n"
-
-    elif btype == "heading_2":
-        return f"{indent}<h2>{html_text}</h2>\n"
-
-    elif btype == "heading_3":
-        return f"{indent}<h3>{html_text}</h3>\n"
+    elif btype in ("heading_1", "heading_2", "heading_3"):
+        tag = {"heading_1": "h1", "heading_2": "h2", "heading_3": "h3"}[btype]
+        anchor = (heading_anchors or {}).get(block.get("id", ""))
+        id_attr = f' id="{anchor}"' if anchor else ""
+        return f"{indent}<{tag}{id_attr}>{html_text}</{tag}>\n"
 
     elif btype in ("bulleted_list_item", "numbered_list_item"):
         tag = "ul" if btype == "bulleted_list_item" else "ol"
-        return _list_item_to_html(block, tag, depth, image_url_map=image_url_map)
+        return _list_item_to_html(block, tag, depth, image_url_map=image_url_map, heading_anchors=heading_anchors)
 
     elif btype == "to_do":
         checked = "checked" if data.get("checked") else ""
         inner = f'<input type="checkbox" {checked} disabled> {html_text}'
         if children:
-            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
+            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors)
         return f'{indent}<label class="todo">{inner}</label>\n'
 
     elif btype == "toggle":
-        children_html = _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map) if children else ""
+        children_html = _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors) if children else ""
         return (f'{indent}<details class="toggle">\n'
                 f'{indent}  <summary>{html_text}</summary>\n'
                 f'{children_html}'
@@ -277,7 +276,7 @@ def _block_to_html(block: dict, depth: int = 0, image_url_map: dict | None = Non
     elif btype == "quote":
         inner = html_text
         if children:
-            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
+            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors)
         return f'{indent}<blockquote>{inner}</blockquote>\n'
 
     elif btype == "callout":
@@ -286,7 +285,7 @@ def _block_to_html(block: dict, depth: int = 0, image_url_map: dict | None = Non
         bg = data.get("color", "gray_background")
         inner = html_text
         if children:
-            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map)
+            inner += "\n" + _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors)
         return (f'{indent}<div class="callout callout-{bg}">'
                 f'<span class="callout-icon">{emoji}</span>'
                 f'<div>{inner}</div></div>\n')
@@ -333,17 +332,18 @@ def _block_to_html(block: dict, depth: int = 0, image_url_map: dict | None = Non
         return f'{indent}<nav id="toc-placeholder" aria-label="Table of contents"></nav>\n'
 
     elif btype == "column_list":
-        cols_html = _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map) if children else ""
+        cols_html = _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors) if children else ""
         return f'{indent}<div class="column-list">\n{cols_html}{indent}</div>\n'
 
     elif btype == "column":
-        col_html = _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map) if children else ""
+        col_html = _blocks_to_html(children, depth=depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors) if children else ""
         return f'{indent}<div class="column">\n{col_html}{indent}</div>\n'
 
     return f"<!-- unsupported block type: {btype} -->\n"
 
 
-def _blocks_to_html(blocks: list, depth: int = 0, image_url_map: dict | None = None) -> str:
+def _blocks_to_html(blocks: list, depth: int = 0, image_url_map: dict | None = None,
+    heading_anchors: dict | None = None) -> str:
     """
     Converts a list of Notion blocks to HTML.
     Consecutive bulleted/numbered list items are grouped into <ul>/<ol>.
@@ -358,7 +358,7 @@ def _blocks_to_html(blocks: list, depth: int = 0, image_url_map: dict | None = N
         if btype == "bulleted_list_item":
             lines.append(f"{indent}<ul>\n")
             while i < len(blocks) and blocks[i].get("type") == "bulleted_list_item":
-                lines.append(_list_item_to_html(blocks[i], "ul", depth + 1, image_url_map=image_url_map))
+                lines.append(_list_item_to_html(blocks[i], "ul", depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors))
                 i += 1
             lines.append(f"{indent}</ul>\n")
             continue
@@ -366,15 +366,73 @@ def _blocks_to_html(blocks: list, depth: int = 0, image_url_map: dict | None = N
         if btype == "numbered_list_item":
             lines.append(f"{indent}<ol>\n")
             while i < len(blocks) and blocks[i].get("type") == "numbered_list_item":
-                lines.append(_list_item_to_html(blocks[i], "ol", depth + 1, image_url_map=image_url_map))
+                lines.append(_list_item_to_html(blocks[i], "ol", depth + 1, image_url_map=image_url_map, heading_anchors=heading_anchors))
                 i += 1
             lines.append(f"{indent}</ol>\n")
             continue
 
-        lines.append(_block_to_html(b, depth=depth, image_url_map=image_url_map))
+        lines.append(_block_to_html(b, depth=depth, image_url_map=image_url_map, heading_anchors=heading_anchors))
         i += 1
 
     return "".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# 3b.  TABLE OF CONTENTS
+# ---------------------------------------------------------------------------
+
+_HEADING_LEVELS = {"heading_1": 1, "heading_2": 2, "heading_3": 3}
+
+
+def _slugify_heading(text: str, seen: dict) -> str:
+    """URL/HTML-id-safe slug for a heading, de-duplicated across the page."""
+    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "section"
+    count = seen.get(slug, 0)
+    seen[slug] = count + 1
+    return slug if count == 0 else f"{slug}-{count}"
+
+
+def _extract_toc(blocks: list) -> list[dict]:
+    """
+    Recursively collects heading_1/2/3 blocks (including inside toggles,
+    callouts, columns, etc.) as [{"level", "text", "anchor", "notion_id"}],
+    in document order. Anchors are unique across the whole page.
+    """
+    entries: list[dict] = []
+    seen: dict = {}
+
+    def walk(items: list) -> None:
+        for b in items:
+            btype = b.get("type", "")
+            if btype in _HEADING_LEVELS:
+                text = "".join(rt.get("plain_text", "") for rt in b.get(btype, {}).get("rich_text", []))
+                text = text.strip()
+                if text:
+                    entries.append({
+                        "level": _HEADING_LEVELS[btype],
+                        "text": text,
+                        "anchor": _slugify_heading(text, seen),
+                        "notion_id": b.get("id", ""),
+                    })
+            children = b.get("_children", [])
+            if children:
+                walk(children)
+
+    walk(blocks)
+    return entries
+
+
+def _render_toc_list(entries: list[dict]) -> str:
+    """Shared <ul> markup for the table of contents (reused inline + sidebar)."""
+    items = "".join(
+        f'<li class="toc-level-{e["level"]}"><a href="#{e["anchor"]}">{_html_escape(e["text"])}</a></li>\n'
+        for e in entries
+    )
+    return f'<p class="toc-label">Contents</p>\n<ul class="toc-list">\n{items}</ul>\n'
+
+
+def _html_escape(text: str) -> str:
+    return (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
 
 
 # ---------------------------------------------------------------------------
@@ -517,6 +575,8 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       --accent:     #1a8917;
       --border:     #e6e6e6;
       --max-w:      680px;
+      --toc-w:      220px;
+      --toc-gap:    2.5rem;
     }}
 
     html {{ font-size: 18px; scroll-behavior: smooth; }}
@@ -577,6 +637,52 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       padding: 3rem 1.5rem 6rem;
     }}
 
+    /* Anchored headings shouldn't hide behind the sticky top nav. */
+    h1[id], h2[id], h3[id] {{ scroll-margin-top: 76px; }}
+
+    /* ── Table of contents (shared list styling) ── */
+    .toc-label {{
+      font-family: var(--sans); font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ink-muted); margin-bottom: 0.75rem;
+    }}
+    .toc-list {{ list-style: none; }}
+    .toc-list li {{ margin-bottom: 0.55rem; font-size: 0.85rem; line-height: 1.4; }}
+    .toc-list a {{
+      color: var(--ink-muted); text-decoration: none;
+      display: block; transition: color 0.15s;
+    }}
+    .toc-list a:hover, .toc-list a.active {{ color: var(--accent); }}
+    .toc-list .toc-level-2 {{ padding-left: 0.9rem; }}
+    .toc-list .toc-level-3 {{ padding-left: 1.8rem; font-size: 0.8rem; }}
+
+    /* Floating sidebar — only shown once there's room beside the article
+       column without overlapping it (roughly max-w + two toc-widths). */
+    .toc-sidebar {{
+      display: none;
+      position: fixed;
+      top: 96px;
+      left: calc(50% + (var(--max-w) / 2) + var(--toc-gap));
+      width: var(--toc-w);
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+    }}
+    @media (min-width: 1180px) {{
+      .toc-sidebar {{ display: block; }}
+    }}
+
+    /* Inline version — fills Notion's own "Table of contents" block, if the
+       author added one in the document itself. Static box, not sticky. */
+    .toc-inline {{
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem 1.4rem;
+      margin: 2rem 0;
+      background: var(--bg-subtle);
+    }}
+    .toc-inline .toc-list li {{ margin-bottom: 0.4rem; }}
+
     /* ── Header block ── */
     .article-header {{ margin-bottom: 2.5rem; }}
 
@@ -609,6 +715,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       padding: 1rem 0;
       margin-bottom: 2.5rem;
     }}
+    .avatar-link {{ display: flex; flex-shrink: 0; text-decoration: none; }}
     .avatar {{
       width: 42px; height: 42px; border-radius: 50%;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -618,7 +725,8 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       object-fit: cover;
     }}
     .meta-right {{ display: flex; flex-direction: column; gap: 0.1rem; }}
-    .meta-author {{ font-weight: 600; color: var(--ink); }}
+    .meta-author {{ font-weight: 600; color: var(--ink); text-decoration: none; }}
+    .meta-author:hover {{ color: var(--accent); }}
     .meta-details {{ color: var(--ink-muted); font-size: 0.82rem; }}
     .meta-sep {{ color: var(--ink-faint); }}
 
@@ -816,6 +924,8 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 
   {cover_html}
 
+  {toc_sidebar_html}
+
   <article>
     <header class="article-header">
       {tags_html}
@@ -825,7 +935,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="article-meta">
       {avatar_html}
       <div class="meta-right">
-        <span class="meta-author">{author_name}</span>
+        {author_name_html}
         <span class="meta-details">
           {date_str}
           <span class="meta-sep"> · </span>
@@ -851,6 +961,32 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     }});
 
     document.addEventListener("DOMContentLoaded", () => hljs.highlightAll());
+
+    // Highlight the current section in the floating table of contents.
+    (function () {{
+      const tocLinks = document.querySelectorAll(".toc-sidebar .toc-list a");
+      if (!tocLinks.length) return;
+
+      const targets = Array.from(tocLinks)
+        .map((a) => document.getElementById(a.getAttribute("href").slice(1)))
+        .filter(Boolean);
+
+      const observer = new IntersectionObserver(
+        (entries) => {{
+          for (const entry of entries) {{
+            if (!entry.isIntersecting) continue;
+            const link = document.querySelector(
+              `.toc-sidebar .toc-list a[href="#${{entry.target.id}}"]`
+            );
+            if (!link) continue;
+            tocLinks.forEach((a) => a.classList.remove("active"));
+            link.classList.add("active");
+          }}
+        }},
+        {{ rootMargin: "-88px 0px -70% 0px" }}
+      );
+      targets.forEach((el) => observer.observe(el));
+    }})();
   </script>
 </body>
 </html>
@@ -864,6 +1000,7 @@ def _render_html(
     current_slug: str = "",
     api_base_url: str = "",
     image_url_map: dict | None = None,
+    author_avatar_url: str = "",
 ) -> str:
     """Assembles the final HTML string from page data. Returns HTML string."""
     meta_raw = page_data["meta"]
@@ -871,6 +1008,9 @@ def _render_html(
 
     m = _extract_meta(meta_raw)
     read_time = _estimate_read_time(blocks)
+
+    toc_entries = _extract_toc(blocks)
+    heading_anchors = {e["notion_id"]: e["anchor"] for e in toc_entries}
 
     cover_html = ""
 
@@ -881,8 +1021,20 @@ def _render_html(
         ) + "</div>"
 
     initial = author[0].upper() if author else "?"
-    avatar_html = f'<div class="avatar">{initial}</div>'
     author_name = author or "Unknown Author"
+
+    if author_avatar_url:
+        avatar_inner = f'<img class="avatar" src="{author_avatar_url}" alt="{author_name}">'
+    else:
+        avatar_inner = f'<div class="avatar">{initial}</div>'
+
+    author_profile_url = f"https://www.notohub.com/{author_slug}/" if author_slug else ""
+    if author_profile_url:
+        avatar_html = f'<a class="avatar-link" href="{author_profile_url}">{avatar_inner}</a>'
+        author_name_html = f'<a class="meta-author" href="{author_profile_url}">{author_name}</a>'
+    else:
+        avatar_html = avatar_inner
+        author_name_html = f'<span class="meta-author">{author_name}</span>'
 
     date_str = datetime.now().strftime("%b %d, %Y")
 
@@ -894,7 +1046,20 @@ def _render_html(
             return iso[:10]
 
     edited_str = _fmt_date(m["edited"]) if m["edited"] else date_str
-    body = _blocks_to_html(blocks, image_url_map=image_url_map)
+    body = _blocks_to_html(blocks, image_url_map=image_url_map, heading_anchors=heading_anchors)
+
+    # Only worth showing a contents list once there's more than a couple sections.
+    toc_sidebar_html = ""
+    if len(toc_entries) >= 2:
+        toc_list_html = _render_toc_list(toc_entries)
+        toc_sidebar_html = f'<aside class="toc-sidebar" aria-label="Table of contents">{toc_list_html}</aside>'
+        # Fill in Notion's own inline "Table of contents" block, if the author added one.
+        body = body.replace(
+            '<nav id="toc-placeholder" aria-label="Table of contents"></nav>',
+            f'<nav class="toc-inline" aria-label="Table of contents">{toc_list_html}</nav>',
+        )
+    else:
+        body = body.replace('<nav id="toc-placeholder" aria-label="Table of contents"></nav>', "")
 
     more_from_html = ""
     if author_slug and api_base_url:
@@ -911,11 +1076,12 @@ def _render_html(
         cover_html=cover_html,
         tags_html=tags_html,
         avatar_html=avatar_html,
-        author_name=author_name,
+        author_name_html=author_name_html,
         date_str=date_str,
         edited_str=edited_str,
         read_time=read_time,
         body=body,
+        toc_sidebar_html=toc_sidebar_html,
         more_from_html=more_from_html,
     )
 
@@ -931,17 +1097,21 @@ def render_page_data(
     current_slug: str = "",
     api_base_url: str = "",
     image_url_map: dict | None = None,
+    author_avatar_url: str = "",
 ) -> str:
     """
     Render pre-fetched page data to HTML without making another API call.
 
     Args:
-        page_data:     Result of fetch_notion_page().
-        author:        Display name shown in the article byline.
-        author_slug:   NotoHub username — used to build the "More from" section.
-        current_slug:  Slug of this article — excluded from the "More from" list.
-        api_base_url:  Base URL of the NotoHub API injected into the "More from" script.
-        image_url_map: Mapping of Notion block IDs to S3-hosted image URLs.
+        page_data:         Result of fetch_notion_page().
+        author:            Display name shown in the article byline.
+        author_slug:       NotoHub username — used to build the "More from" section
+                           and to link the byline to the author's profile page.
+        current_slug:      Slug of this article — excluded from the "More from" list.
+        api_base_url:      Base URL of the NotoHub API injected into the "More from" script.
+        image_url_map:     Mapping of Notion block IDs to S3-hosted image URLs.
+        author_avatar_url: Author's uploaded profile picture, if any — falls back to
+                           an initial-letter avatar when not provided.
     """
     return _render_html(
         page_data,
@@ -950,6 +1120,7 @@ def render_page_data(
         current_slug=current_slug,
         api_base_url=api_base_url,
         image_url_map=image_url_map,
+        author_avatar_url=author_avatar_url,
     )
 
 

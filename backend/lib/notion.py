@@ -164,17 +164,20 @@ def fetch_page_for_publish(
     author_name: str | None = None,
     author_slug: str = "",
     current_slug: str = "",
+    author_avatar_url: str = "",
 ) -> tuple[dict, str]:
     """
     Fetch a Notion page and return (metadata, html).
 
     Args:
-        page_id:      Notion page ID.
-        access_token: Notion OAuth token for the user, or a private integration token.
-        existing_id:  Existing article ID to reuse (skips generating a new UUID).
-        author_name:  Override the author displayed in the rendered HTML.
-        author_slug:  NotoHub username — embedded in the "More from" section.
-        current_slug: Slug of this article — excluded from the "More from" list.
+        page_id:           Notion page ID.
+        access_token:      Notion OAuth token for the user, or a private integration token.
+        existing_id:       Existing article ID to reuse (skips generating a new UUID).
+        author_name:       Override the author displayed in the rendered HTML.
+        author_slug:       NotoHub username — embedded in the "More from" section and
+                           used to link the byline to the author's profile page.
+        current_slug:      Slug of this article — excluded from the "More from" list.
+        author_avatar_url: Author's uploaded profile picture, if any.
     """
     auth_fn = token_auth(access_token)
     page_data = fetch_notion_page(page_id, auth_fn)
@@ -194,5 +197,6 @@ def fetch_page_for_publish(
         current_slug=current_slug,
         api_base_url=config.public_api_url,
         image_url_map=image_url_map,
+        author_avatar_url=author_avatar_url,
     )
     return metadata, html
