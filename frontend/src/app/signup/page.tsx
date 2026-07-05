@@ -349,10 +349,9 @@ export default function SignupPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-          <h1 className="font-heading text-[2rem] font-bold text-[#1a1a1a] tracking-tight">
-            NotoHub
-          </h1>
-          <p className="text-sm text-[#6b6b6b] mt-1.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-icon.png" alt="NotoHub" className="h-12 w-auto mx-auto" />
+          <p className="text-sm text-[#6b6b6b] mt-3">
             {step === 1 ? 'Create your account' : 'Verify your email'}
           </p>
         </div>

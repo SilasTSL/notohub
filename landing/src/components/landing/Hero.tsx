@@ -1,0 +1,49 @@
+import Link from 'next/link'
+import ScreenshotPlaceholder from './ScreenshotPlaceholder'
+
+const APP_URL = 'https://app.notohub.com'
+
+export default function Hero() {
+  return (
+    <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-[#1a8917] bg-[#f0faf0] border border-[#b8ddb8] rounded-full px-3 py-1 mb-6">
+        Notion → live blog, instantly
+      </span>
+
+      <h1 className="font-heading text-5xl sm:text-6xl font-bold text-[#1a1a1a] tracking-tight leading-[1.08]">
+        Your Notion pages,
+        <br />
+        published to the world.
+      </h1>
+
+      <p className="mt-6 text-xl text-[#6b6b6b] max-w-2xl mx-auto leading-relaxed">
+        Skip the static site generators, the hosting configs, the DNS headaches.
+        Write in Notion like you already do — NotoHub turns any page into a fast,
+        clean article with its own URL. Free, and live in under a minute.
+      </p>
+
+      <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+        <a
+          href={`${APP_URL}/signup`}
+          className="bg-[#1a8917] hover:bg-[#157313] text-white px-8 py-3.5 rounded-lg font-medium transition-colors text-base"
+        >
+          Start publishing — it&apos;s free
+        </a>
+        <Link
+          href="/articles"
+          className="border border-[#e6e6e6] hover:border-[#1a8917] text-[#1a1a1a] px-8 py-3.5 rounded-lg font-medium transition-colors text-base"
+        >
+          Browse articles
+        </Link>
+      </div>
+
+      <p className="mt-4 text-xs text-[#b0b0b0]">
+        No credit card. No hosting to manage. Just write.
+      </p>
+
+      <div className="mt-14 max-w-4xl mx-auto">
+        <ScreenshotPlaceholder label="Screenshot: NotoHub dashboard — your articles at a glance" />
+      </div>
+    </section>
+  )
+}

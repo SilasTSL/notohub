@@ -24,6 +24,10 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'NotoHub',
   },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function RootLayout({

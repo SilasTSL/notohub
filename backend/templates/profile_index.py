@@ -124,6 +124,7 @@ def render_profile_index_shell(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.ico">
   <title>{e(username)} &mdash; NotoHub</title>
   <meta name="description" content="{e(bio) if bio else e(username) + " on NotoHub"}">
 
@@ -167,12 +168,10 @@ def render_profile_index_shell(
       display: flex; align-items: center; justify-content: space-between;
     }}
     .nav-logo {{
-      font-family: var(--heading);
-      font-weight: 700; font-size: 1.1rem;
-      color: var(--ink); text-decoration: none;
-      letter-spacing: -0.02em;
+      display: flex; align-items: center;
+      text-decoration: none;
     }}
-    .nav-logo:hover {{ color: var(--accent); }}
+    .nav-logo img {{ height: 28px; width: auto; display: block; }}
 
     /* ── Page wrapper ── */
     .page {{
@@ -377,7 +376,7 @@ def render_profile_index_shell(
 <body>
 
   <nav class="top-bar">
-    <a class="nav-logo" href="https://www.notohub.com/">NotoHub</a>
+    <a class="nav-logo" href="https://www.notohub.com/"><img src="/logo-icon.png" alt="NotoHub"></a>
   </nav>
 
   <div class="profile-header">

@@ -489,6 +489,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.ico">
   <title>{title}</title>
   <meta name="description" content="{title}">
 
@@ -547,11 +548,10 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       display: flex; align-items: center; justify-content: space-between;
     }}
     .nav-logo {{
-      font-family: var(--sans);
-      font-weight: 600; font-size: 1.15rem;
-      color: var(--ink); text-decoration: none;
-      letter-spacing: -0.02em;
+      display: flex; align-items: center;
+      text-decoration: none;
     }}
+    .nav-logo img {{ height: 28px; width: auto; display: block; }}
     .nav-actions {{
       display: flex; gap: 1rem; align-items: center;
       font-family: var(--sans); font-size: 0.85rem; color: var(--ink-muted);
@@ -807,7 +807,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   <div id="progress-bar"></div>
 
   <nav class="top-bar">
-    <a class="nav-logo" href="#">Notohub</a>
+    <a class="nav-logo" href="https://www.notohub.com/"><img src="/logo-icon.png" alt="NotoHub"></a>
     <div class="nav-actions">
       <span>{read_time} min read</span>
       <button class="btn-follow">Follow</button>
