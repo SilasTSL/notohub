@@ -167,7 +167,7 @@ export default function DashboardPage() {
                   )}
                 </a>
                 <a
-                  href="#"
+                  href="/settings"
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[#6b6b6b] hover:bg-[#f9f9f9] text-sm transition-colors"
                 >
                   <svg

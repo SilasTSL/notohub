@@ -28,6 +28,11 @@ export async function getNotionConnectUrl(): Promise<{ url: string }> {
   return body.data
 }
 
+export async function disconnectNotion(): Promise<void> {
+  const res = await authFetch(`${API_URL}/auth/notion/disconnect`, { method: 'POST' })
+  await handleResponse<{ message?: string }>(res)
+}
+
 // ─── Articles ─────────────────────────────────────────────────────────────────
 
 export async function publishArticle(
@@ -84,4 +89,14 @@ export async function saveProfile(data: {
   })
   const body = await handleResponse<{ data: { url: string } }>(res)
   return body.data
+}
+
+// ─── Account ──────────────────────────────────────────────────────────────────
+
+// Deletes all backend data (articles, profile, S3 content, user record).
+// Caller must delete the Cognito login itself afterward (authDeleteUser in
+// lib/auth.ts) — this only owns backend data, not the login credential.
+export async function deleteAccountData(): Promise<void> {
+  const res = await authFetch(`${API_URL}/account`, { method: 'DELETE' })
+  await handleResponse<{ message?: string }>(res)
 }

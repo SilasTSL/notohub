@@ -103,6 +103,25 @@ def delete_article_html(s3_key: str) -> None:
     )
 
 
+def delete_user_content(username: str) -> None:
+    """
+    Delete every object under this user's S3 prefix — profile page, avatar,
+    and every published article's HTML + inline images (they all live under
+    {username}/, since that's how article_s3_key/avatar keys are built).
+    """
+    client = _get_client()
+    prefix = f"{_slugify(username)}/"
+    paginator = client.get_paginator("list_objects_v2")
+
+    for page in paginator.paginate(Bucket=config.s3_bucket_name, Prefix=prefix):
+        keys = [{"Key": obj["Key"]} for obj in page.get("Contents", [])]
+        if keys:
+            client.delete_objects(
+                Bucket=config.s3_bucket_name,
+                Delete={"Objects": keys},
+            )
+
+
 _CONTENT_TYPE_TO_EXT: dict[str, str] = {
     "image/jpeg": "jpg",
     "image/png": "png",

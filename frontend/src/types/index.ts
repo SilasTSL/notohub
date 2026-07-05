@@ -23,4 +23,5 @@ export interface UserProfile {
     linkedin?: string
   }
   profilePublished: boolean
+  notionConnected: boolean
 }

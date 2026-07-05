@@ -14,6 +14,7 @@ import {
   authConfirmSignUp,
   authSignOut,
   authGetCurrentUser,
+  authDeleteUser,
 } from '@/lib/auth'
 import { registerUser } from '@/lib/api'
 import type { AuthUser } from '@/types'
@@ -30,6 +31,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, username: string) => Promise<void>
   confirmSignUp: (email: string, code: string) => Promise<void>
   signOut: () => Promise<void>
+  deleteAccount: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -114,8 +116,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  // Deletes the Cognito login itself. Callers must delete backend data
+  // (articles, profile, S3 content) first — this invalidates the session.
+  async function deleteAccount() {
+    if (IS_FAKE_AUTH) {
+      localStorage.removeItem(FAKE_USER_KEY)
+      setUser(null)
+      return
+    }
+    await authDeleteUser()
+    setUser(null)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, confirmSignUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, confirmSignUp, signOut, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   )

@@ -86,3 +86,9 @@ def set_profile_published(sub: str) -> None:
         UpdateExpression="SET profilePublished = :t, updatedAt = :now",
         ExpressionAttributeValues={":t": True, ":now": now},
     )
+
+
+def delete_user(sub: str) -> None:
+    """Delete a user's record. Caller is responsible for deleting their
+    articles and S3 content first."""
+    _get_table().delete_item(Key={"PK": f"USER#{sub}", "SK": "USER"})

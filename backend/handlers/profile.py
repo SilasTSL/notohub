@@ -4,10 +4,12 @@ handlers/profile.py
 Route handlers for user profile management.
 
 Routes:
-  GET  /profile                    → get caller's profile fields (auth required)
-  POST /profile                    → save profile + publish shell to S3 (auth required)
-  POST /profile/avatar-upload-url  → generate pre-signed PUT URL (auth required)
-  GET  /articles/public            → public article list by username (no auth, CORS *)
+  GET    /profile                    → get caller's profile fields (auth required)
+  POST   /profile                    → save profile + publish shell to S3 (auth required)
+  POST   /profile/avatar-upload-url  → generate pre-signed PUT URL (auth required)
+  POST   /auth/notion/disconnect     → remove stored Notion OAuth token (auth required)
+  DELETE /account                    → delete all of the caller's data (auth required)
+  GET    /articles/public            → public article list by username (no auth, CORS *)
 """
 from __future__ import annotations
 
@@ -15,9 +17,9 @@ import json
 import re
 
 from lib.cognito import get_verified_user
-from lib.users import get_user, get_user_by_username, update_user_profile, set_profile_published
-from lib.dynamodb import list_user_articles
-from lib.s3 import generate_presigned_put_url, put_profile_html, ALLOWED_AVATAR_CONTENT_TYPES
+from lib.users import get_user, get_user_by_username, update_user_profile, set_profile_published, delete_user
+from lib.dynamodb import list_user_articles, delete_article, clear_notion_token
+from lib.s3 import generate_presigned_put_url, put_profile_html, delete_user_content, ALLOWED_AVATAR_CONTENT_TYPES
 from lib.config import config
 from lib.response import ok, bad_request, unauthorized, not_found, server_error, public_ok
 from templates.profile_index import render_profile_index_shell
@@ -43,7 +45,59 @@ def handle_get_profile(event: dict) -> dict:
         "avatarUrl": user.get("avatarUrl"),
         "socialLinks": user.get("socialLinks"),
         "profilePublished": user.get("profilePublished", False),
+        "notionConnected": bool(user.get("notionAccessToken")),
     })
+
+
+# ── POST /auth/notion/disconnect ─────────────────────────────────────────────
+
+def handle_disconnect_notion(event: dict) -> dict:
+    """Remove the caller's stored Notion OAuth token."""
+    try:
+        user_info = get_verified_user(event)
+    except ValueError as exc:
+        return unauthorized(str(exc))
+
+    try:
+        clear_notion_token(user_info["sub"])
+    except Exception as exc:
+        return server_error(exc)
+
+    return ok({"message": "Notion disconnected"})
+
+
+# ── DELETE /account ───────────────────────────────────────────────────────────
+
+def handle_delete_account(event: dict) -> dict:
+    """
+    Permanently delete the caller's account data: every published article
+    (DynamoDB + S3 HTML/images), the profile page + avatar, and the user
+    record itself. The Cognito login is deleted separately by the frontend
+    (self-service, using the caller's still-valid session) immediately after
+    this succeeds — this endpoint only owns the backend data.
+    """
+    try:
+        user_info = get_verified_user(event)
+    except ValueError as exc:
+        return unauthorized(str(exc))
+
+    user_sub = user_info["sub"]
+    user = get_user(user_sub)
+    if not user:
+        return not_found("User record not found")
+
+    username = user.get("username", "")
+
+    try:
+        for article in list_user_articles(user_sub):
+            delete_article(article["id"])
+        if username:
+            delete_user_content(username)
+        delete_user(user_sub)
+    except Exception as exc:
+        return server_error(exc)
+
+    return ok({"message": "Account deleted"})
 
 
 # ── POST /profile/avatar-upload-url ──────────────────────────────────────────

@@ -7,6 +7,7 @@ import {
   getCurrentUser,
   fetchUserAttributes,
   fetchAuthSession,
+  deleteUser,
 } from 'aws-amplify/auth'
 
 function mapError(error: unknown): never {
@@ -106,6 +107,18 @@ export async function authSignIn(email: string, password: string): Promise<void>
 export async function authSignOut(): Promise<void> {
   try {
     await signOut()
+  } catch (error) {
+    mapError(error)
+  }
+}
+
+// Self-service Cognito account deletion — uses the caller's own active
+// session, no admin/IAM permissions needed. Call only after backend data
+// (articles, profile, S3 content) has already been deleted, since this
+// invalidates the session immediately on success.
+export async function authDeleteUser(): Promise<void> {
+  try {
+    await deleteUser()
   } catch (error) {
     mapError(error)
   }

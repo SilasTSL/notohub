@@ -111,6 +111,17 @@ def save_notion_token(user_id: str, access_token: str) -> None:
     )
 
 
+def clear_notion_token(user_id: str) -> None:
+    """Disconnect Notion — remove the stored OAuth access token."""
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
+    _get_table().update_item(
+        Key={"PK": f"USER#{user_id}", "SK": "USER"},
+        UpdateExpression="REMOVE notionAccessToken SET updatedAt = :now",
+        ExpressionAttributeValues={":now": now},
+    )
+
+
 def get_user_notion_token(user_id: str) -> str | None:
     """Return the user's stored Notion OAuth access token, or None if not connected."""
     response = _get_table().get_item(

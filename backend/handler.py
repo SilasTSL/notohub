@@ -17,6 +17,8 @@ Routes:
   GET  /profile                           → get caller's profile fields (requires auth)
   POST /profile                           → save profile + publish shell to S3 (requires auth)
   POST /profile/avatar-upload-url         → generate pre-signed PUT URL (requires auth)
+  POST /auth/notion/disconnect            → remove stored Notion OAuth token (requires auth)
+  DELETE /account                         → delete all of the caller's data (requires auth)
   OPTIONS *                               → CORS preflight
 """
 import re
@@ -32,6 +34,8 @@ from handlers.profile import (
     handle_save_profile,
     handle_avatar_upload_url,
     handle_public_articles,
+    handle_disconnect_notion,
+    handle_delete_account,
 )
 
 # /articles/<slug>  — must not match "publish" as a slug for the POST route
@@ -66,6 +70,14 @@ def handler(event: dict[str, Any], context: Any) -> dict:
     # ── GET /auth/notion/callback ───────────────────────────────────────────
     if method == "GET" and path == "/auth/notion/callback":
         return handle_notion_callback(event)
+
+    # ── POST /auth/notion/disconnect ────────────────────────────────────────
+    if method == "POST" and path == "/auth/notion/disconnect":
+        return handle_disconnect_notion(event)
+
+    # ── DELETE /account ──────────────────────────────────────────────────────
+    if method == "DELETE" and path == "/account":
+        return handle_delete_account(event)
 
     # ── POST /articles/publish ──────────────────────────────────────────────
     if method == "POST" and path == "/articles/publish":
