@@ -194,6 +194,7 @@ def fetch_page_for_publish(
     author_slug: str = "",
     current_slug: str = "",
     author_avatar_url: str = "",
+    social_links: dict | None = None,
 ) -> tuple[dict, str]:
     """
     Fetch a Notion page and return (metadata, html).
@@ -207,6 +208,7 @@ def fetch_page_for_publish(
                            used to link the byline to the author's profile page.
         current_slug:      Slug of this article — excluded from the "More from" list.
         author_avatar_url: Author's uploaded profile picture, if any.
+        social_links:      Author's {twitter, github, linkedin} URLs, if set.
     """
     auth_fn = token_auth(access_token)
     page_data = fetch_notion_page(page_id, auth_fn)
@@ -239,5 +241,6 @@ def fetch_page_for_publish(
         author_avatar_url=author_avatar_url,
         cover_image_url=metadata.get("coverImageUrl") or "",
         excerpt=metadata.get("excerpt", ""),
+        social_links=social_links,
     )
     return metadata, html

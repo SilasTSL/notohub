@@ -160,6 +160,7 @@ def run_publish_job(payload: dict) -> None:
     try:
         user_record = get_user(user_sub)
         author_avatar_url = (user_record or {}).get("avatarUrl") or ""
+        social_links = (user_record or {}).get("socialLinks")
 
         metadata, html = fetch_page_for_publish(
             payload["notion_page_id"],
@@ -168,6 +169,7 @@ def run_publish_job(payload: dict) -> None:
             author_slug=username,
             current_slug=slug,
             author_avatar_url=author_avatar_url,
+            social_links=social_links,
         )
         # The user chose this slug in the publish modal — honour it over Notion's.
         metadata["slug"] = slug

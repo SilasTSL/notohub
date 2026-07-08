@@ -40,13 +40,32 @@ export default function Hero() {
         No credit card. No code. Just write.
       </p>
 
-      <div className="mt-14 max-w-4xl mx-auto">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/index-example.png"
-          alt="A NotoHub author profile page, with published articles"
-          className="w-full h-auto rounded-xl border border-[#e6e6e6] shadow-sm"
+      <div className="mt-14 max-w-4xl mx-auto relative">
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-8 inset-y-6 -z-10 bg-gradient-to-tr from-[#dff5db] to-[#eefaf5] blur-3xl opacity-70"
         />
+        <div className="rounded-xl border border-[#e6e6e6] shadow-xl overflow-hidden bg-white text-left">
+          {/* Browser chrome */}
+          <div className="flex items-center gap-3 px-4 py-2.5 bg-[#f5f5f5] border-b border-[#e6e6e6]">
+            <div className="flex gap-1.5 shrink-0">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
+            </div>
+            <div className="flex-1 flex justify-center">
+              <span className="text-xs text-[#8a8a8a] bg-white border border-[#e6e6e6] rounded-full px-4 py-1 truncate">
+                notohub.com/you/your-article
+              </span>
+            </div>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero-article.png"
+            alt="A published article on NotoHub, with its own URL"
+            className="w-full h-auto block"
+          />
+        </div>
       </div>
     </section>
   )
