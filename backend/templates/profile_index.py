@@ -104,7 +104,7 @@ _PAGE_TEMPLATE = """<!DOCTYPE html>
     --faint:#9aa4af;
     --line:#e6e3dc;
     --line-strong:#d4d0c6;
-    --paper:#f7f5f0;
+    --paper:#ffffff;
     --card:#ffffff;
     --accent:#2f6f4e;
     --accent-ink:#1e4a34;
@@ -126,7 +126,7 @@ _PAGE_TEMPLATE = """<!DOCTYPE html>
     position:sticky;top:0;z-index:20;
     display:flex;align-items:center;justify-content:space-between;
     padding:16px clamp(20px,5vw,64px);
-    background:rgba(247,245,240,.82);
+    background:rgba(255,255,255,.82);
     backdrop-filter:saturate(1.4) blur(10px);
     border-bottom:1px solid var(--line);
   }
