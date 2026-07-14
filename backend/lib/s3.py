@@ -177,6 +177,19 @@ def generate_presigned_put_url(username: str, content_type: str) -> tuple[str, s
 
     Returns (upload_url, public_url) where public_url is the final URL after
     the client completes the upload.
+
+    The S3 key is deterministic (one avatar per user, so re-uploading
+    overwrites the old one instead of piling up orphaned files) — but that
+    means the URL never changes between uploads. This bucket sits behind
+    CloudFront on the AWS-managed "CachingOptimized" policy, which ignores
+    query strings entirely (so a "?v=" cache-buster on the URL does nothing)
+    and falls back to a 24h default TTL when the origin doesn't send its own
+    Cache-Control — so a re-uploaded avatar could stay stale at the edge for
+    up to a day. Signing CacheControl: no-cache into the upload forces
+    CloudFront (and browsers) to revalidate with S3 on every request instead
+    of blindly trusting a stale cached copy, so a new upload is reflected
+    immediately. The client's PUT must send back this exact header for the
+    signature to match (see the fetch() call in useProfileForm.ts).
     """
     ext = _CONTENT_TYPE_TO_EXT[content_type]
     key = f"{username}/avatar.{ext}"
@@ -186,6 +199,7 @@ def generate_presigned_put_url(username: str, content_type: str) -> tuple[str, s
             "Bucket": config.s3_bucket_name,
             "Key": key,
             "ContentType": content_type,
+            "CacheControl": "no-cache",
         },
         ExpiresIn=300,
     )

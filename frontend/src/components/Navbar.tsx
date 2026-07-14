@@ -1,15 +1,33 @@
 'use client'
 
 import Link from 'next/link'
+import type { MouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import Logo from '@/components/Logo'
 
-export default function Navbar() {
+interface NavbarProps {
+  /**
+   * Called before any in-app navigation this Navbar would trigger (logo
+   * click, sign out). Return false to block the navigation — e.g. to warn
+   * about unsaved changes — or true to let it proceed. Browser-level exits
+   * (tab close/refresh) aren't covered here; pages handle those separately.
+   */
+  confirmNavigation?: () => boolean
+}
+
+export default function Navbar({ confirmNavigation }: NavbarProps = {}) {
   const { user, signOut } = useAuth()
   const router = useRouter()
 
+  function handleLogoClick(e: MouseEvent) {
+    if (confirmNavigation && !confirmNavigation()) {
+      e.preventDefault()
+    }
+  }
+
   async function handleSignOut() {
+    if (confirmNavigation && !confirmNavigation()) return
     await signOut()
     router.push('/login')
   }
@@ -17,7 +35,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-20 bg-white border-b border-[#e6e6e6]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-        <Link href="/dashboard" className="flex items-center" aria-label="NotoHub">
+        <Link href="/dashboard" className="flex items-center" aria-label="NotoHub" onClick={handleLogoClick}>
           <Logo />
         </Link>
         {user && (

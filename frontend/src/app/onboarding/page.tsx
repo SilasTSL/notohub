@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { getNotionConnectUrl } from '@/lib/api'
+import ProfileFormFields from '@/components/ProfileFormFields'
+import ProfilePreview from '@/components/ProfilePreview'
+import { useProfileForm } from '@/hooks/useProfileForm'
+
+const TOTAL_STEPS = 3
 
 function Spinner({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -21,9 +26,16 @@ export default function OnboardingPage() {
   const [connecting, setConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const profile = useProfileForm()
+  const { form, profileLoading, loadProfile, socialErrors, saving, saveError, handleSubmit } = profile
+
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
   }, [user, loading, router])
+
+  useEffect(() => {
+    if (!loading && user) loadProfile()
+  }, [loading, user, loadProfile])
 
   // Notion redirects back with ?notion=connected after a successful OAuth flow
   useEffect(() => {
@@ -47,12 +59,21 @@ export default function OnboardingPage() {
     }
   }
 
+  async function handleContinueFromProfile(e: React.FormEvent) {
+    e.preventDefault()
+    const ok = await handleSubmit()
+    if (ok) setStep(3)
+  }
+
+  const bioOver = form.bio.length > 280
+  const cardWidth = step === 2 ? 'max-w-lg' : 'max-w-md'
+
   return (
-    <div className="min-h-screen bg-[#f9f9f9] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#f9f9f9] flex items-center justify-center p-4 py-10">
+      <div className={`w-full ${cardWidth}`}>
         {/* Step indicator */}
         <div className="flex items-center justify-center mb-3">
-          {[1, 2].map((s) => (
+          {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
             <div key={s} className="flex items-center">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
@@ -71,17 +92,17 @@ export default function OnboardingPage() {
                   s
                 )}
               </div>
-              {s < 2 && (
+              {s < TOTAL_STEPS && (
                 <div className={`w-16 h-0.5 transition-colors ${step > s ? 'bg-[#1a8917]' : 'bg-[#e6e6e6]'}`} />
               )}
             </div>
           ))}
         </div>
-        <p className="text-center text-xs text-[#6b6b6b] mb-8">Step {step} of 2</p>
+        <p className="text-center text-xs text-[#6b6b6b] mb-8">Step {step} of {TOTAL_STEPS}</p>
 
         {/* Card */}
         <div className="bg-white rounded-2xl border border-[#e6e6e6] shadow-sm px-8 py-8">
-          {step === 1 ? (
+          {step === 1 && (
             <div>
               <h1 className="font-heading text-2xl font-bold text-[#1a1a1a] mb-2">
                 Connect Notion
@@ -115,7 +136,57 @@ export default function OnboardingPage() {
                 {connecting ? 'Opening Notion…' : 'Connect Notion Workspace →'}
               </button>
             </div>
-          ) : (
+          )}
+
+          {step === 2 && (
+            <div>
+              <h1 className="font-heading text-2xl font-bold text-[#1a1a1a] mb-2">
+                Set up your profile
+              </h1>
+              <p className="text-sm text-[#6b6b6b] leading-relaxed mb-6">
+                This is what visitors see at{' '}
+                <span className="text-[#1a8917]">notohub.com/{user.username}</span>.
+                You can always edit it later, but let&apos;s get the basics in now.
+              </p>
+
+              {profileLoading ? (
+                <div className="flex justify-center py-8">
+                  <svg className="animate-spin h-6 w-6 text-[#1a8917]" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                </div>
+              ) : (
+                <form onSubmit={handleContinueFromProfile} className="space-y-6">
+                  <ProfileFormFields username={user.username} profile={profile} />
+
+                  <ProfilePreview
+                    username={user.username}
+                    bio={form.bio}
+                    avatarUrl={profile.previewAvatarUrl}
+                    socialLinks={form.socialLinks}
+                  />
+
+                  {saveError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+                      {saveError}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={saving || bioOver || Object.keys(socialErrors).length > 0}
+                    className="w-full bg-[#1a8917] hover:bg-[#157313] disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+                  >
+                    {saving && <Spinner />}
+                    {saving ? 'Saving…' : 'Save & Continue →'}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {step === 3 && (
             <div className="text-center py-4">
               <div className="mx-auto w-16 h-16 rounded-full bg-[#f0faf0] flex items-center justify-center mb-6">
                 <svg className="w-8 h-8 text-[#1a8917]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -124,7 +195,7 @@ export default function OnboardingPage() {
               </div>
 
               <h1 className="font-heading text-2xl font-bold text-[#1a1a1a] mb-2">
-                Notion connected!
+                You&apos;re all set!
               </h1>
               <p className="text-sm text-[#6b6b6b] mb-8">
                 You&apos;re ready to publish your first article.
