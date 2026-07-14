@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import Navbar from '@/components/Navbar'
 import ArticleRow from '@/components/ArticleRow'
+import ArticleRowSkeleton from '@/components/ArticleRowSkeleton'
 import PublishModal from '@/components/PublishModal'
 import { listArticles, deleteArticle, publishArticle, getProfile } from '@/lib/api'
 import type { Article } from '@/types'
@@ -223,8 +224,10 @@ export default function DashboardPage() {
 
             {/* Article grid */}
             {articlesLoading ? (
-              <div className="py-20 flex justify-center">
-                <Spinner />
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <ArticleRowSkeleton key={i} />
+                ))}
               </div>
             ) : articles.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

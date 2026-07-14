@@ -3,15 +3,25 @@
 import { useEffect, useState } from "react";
 import type { ArticleMetadata, ArticleListResponse } from "@notohub/shared";
 import ArticleCard from "@/components/ArticleCard";
+import ArticleCardSkeleton from "@/components/ArticleCardSkeleton";
 
 const API_URL = "https://api.notohub.com";
 
-function Spinner() {
+function FeaturedSkeleton() {
   return (
-    <svg className="animate-spin h-8 w-8 text-[#1a8917]" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
+    <div className="grid sm:grid-cols-2 rounded-2xl border border-[#e6e6e6] overflow-hidden animate-pulse">
+      <div className="w-full h-60 sm:h-full bg-[#ececec]" />
+      <div className="p-8 flex flex-col justify-center gap-4">
+        <div className="h-3 bg-[#ececec] rounded w-24" />
+        <div className="h-6 bg-[#ececec] rounded w-4/5" />
+        <div className="h-6 bg-[#ececec] rounded w-3/5" />
+        <div className="space-y-2">
+          <div className="h-3 bg-[#ececec] rounded w-full" />
+          <div className="h-3 bg-[#ececec] rounded w-5/6" />
+        </div>
+        <div className="h-3 bg-[#ececec] rounded w-1/3" />
+      </div>
+    </div>
   );
 }
 
@@ -50,8 +60,16 @@ export default function ArticlesPage() {
       </div>
 
       {loading ? (
-        <div className="py-20 flex justify-center">
-          <Spinner />
+        <div className="space-y-12">
+          <FeaturedSkeleton />
+          <div>
+            <div className="h-5 bg-[#ececec] rounded w-32 mb-6 animate-pulse" />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }, (_, i) => (
+                <ArticleCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
         </div>
       ) : articles.length === 0 ? (
         <p className="text-[#6b6b6b]">No articles yet. Check back soon!</p>
