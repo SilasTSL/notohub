@@ -162,6 +162,8 @@ export default function OnboardingPage() {
 
                   <ProfilePreview
                     username={user.username}
+                    name={form.name}
+                    location={form.location}
                     bio={form.bio}
                     avatarUrl={profile.previewAvatarUrl}
                     socialLinks={form.socialLinks}
@@ -175,7 +177,7 @@ export default function OnboardingPage() {
 
                   <button
                     type="submit"
-                    disabled={saving || bioOver || Object.keys(socialErrors).length > 0}
+                    disabled={saving || !form.name.trim() || bioOver || Object.keys(socialErrors).length > 0}
                     className="w-full bg-[#1a8917] hover:bg-[#157313] disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
                   >
                     {saving && <Spinner />}

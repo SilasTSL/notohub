@@ -2,12 +2,16 @@ import { useCallback, useEffect, useRef, useState, ChangeEvent } from 'react'
 import { getProfile, getAvatarUploadUrl, saveProfile } from '@/lib/api'
 
 export interface ProfileFormState {
+  name: string
+  location: string
   bio: string
   avatarUrl: string
   socialLinks: { twitter: string; github: string; linkedin: string }
 }
 
 const EMPTY_FORM: ProfileFormState = {
+  name: '',
+  location: '',
   bio: '',
   avatarUrl: '',
   socialLinks: { twitter: '', github: '', linkedin: '' },
@@ -17,6 +21,8 @@ const URL_RE = /^https?:\/\/.+/i
 
 function sameForm(a: ProfileFormState, b: ProfileFormState): boolean {
   return (
+    a.name === b.name &&
+    a.location === b.location &&
     a.bio === b.bio &&
     a.avatarUrl === b.avatarUrl &&
     a.socialLinks.twitter === b.socialLinks.twitter &&
@@ -54,6 +60,8 @@ export function useProfileForm() {
     try {
       const profile = await getProfile()
       const loaded: ProfileFormState = {
+        name: profile.name ?? '',
+        location: profile.location ?? '',
         bio: profile.bio ?? '',
         avatarUrl: profile.avatarUrl ?? '',
         socialLinks: {
@@ -170,6 +178,10 @@ export function useProfileForm() {
     e?.preventDefault()
 
     if (Object.keys(socialErrors).length > 0) return false
+    if (!form.name.trim()) {
+      setSaveError('Please enter your name.')
+      return false
+    }
 
     setSaving(true)
     setSaveError(null)
@@ -178,6 +190,8 @@ export function useProfileForm() {
     try {
       const payload: Parameters<typeof saveProfile>[0] = {}
 
+      payload.name = form.name.trim()
+      if (form.location) payload.location = form.location
       if (form.bio) payload.bio = form.bio
       if (form.avatarUrl) payload.avatarUrl = form.avatarUrl
       const sl = form.socialLinks

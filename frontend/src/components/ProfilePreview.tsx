@@ -35,12 +35,14 @@ export function avatarColour(username: string): string {
 
 interface ProfilePreviewProps {
   username: string
+  name: string
+  location: string
   bio: string
   avatarUrl: string
   socialLinks: { twitter: string; github: string; linkedin: string }
 }
 
-export default function ProfilePreview({ username, bio, avatarUrl, socialLinks }: ProfilePreviewProps) {
+export default function ProfilePreview({ username, name, location, bio, avatarUrl, socialLinks }: ProfilePreviewProps) {
   const initial = username ? username[0].toUpperCase() : '?'
   const colour = avatarColour(username)
 
@@ -66,8 +68,14 @@ export default function ProfilePreview({ username, bio, avatarUrl, socialLinks }
         </div>
       )}
 
-      {/* Username */}
-      <p className="font-heading text-lg font-semibold text-[#1a1a1a] mb-1">{username || '—'}</p>
+      {/* Name + username */}
+      <p className="font-heading text-lg font-semibold text-[#1a1a1a]">{name || '—'}</p>
+      <p className="text-sm text-[#6b6b6b] mb-1">@{username || 'username'}</p>
+
+      {/* Location */}
+      {location && (
+        <p className="text-xs text-[#b0b0b0] mb-2">{location}</p>
+      )}
 
       {/* Bio */}
       {bio && (

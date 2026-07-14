@@ -55,6 +55,8 @@ def update_user_profile(
     bio: str | None = None,
     avatar_url: str | None = None,
     social_links: dict | None = None,
+    name: str | None = None,
+    location: str | None = None,
 ) -> None:
     """Partial update of profile fields. Only overwrites the fields provided."""
     now = datetime.now(timezone.utc).isoformat()
@@ -70,12 +72,28 @@ def update_user_profile(
     if social_links is not None:
         update_parts.append("socialLinks = :socialLinks")
         expr_values[":socialLinks"] = social_links
+    if name is not None:
+        update_parts.append("#name = :name")
+        expr_values[":name"] = name
+    if location is not None:
+        update_parts.append("#location = :location")
+        expr_values[":location"] = location
 
-    _get_table().update_item(
-        Key={"PK": f"USER#{sub}", "SK": "USER"},
-        UpdateExpression="SET " + ", ".join(update_parts),
-        ExpressionAttributeValues=expr_values,
-    )
+    expr_names = {}
+    if name is not None:
+        expr_names["#name"] = "name"
+    if location is not None:
+        expr_names["#location"] = "location"
+
+    kwargs: dict = {
+        "Key": {"PK": f"USER#{sub}", "SK": "USER"},
+        "UpdateExpression": "SET " + ", ".join(update_parts),
+        "ExpressionAttributeValues": expr_values,
+    }
+    if expr_names:
+        kwargs["ExpressionAttributeNames"] = expr_names
+
+    _get_table().update_item(**kwargs)
 
 
 def set_profile_published(sub: str) -> None:

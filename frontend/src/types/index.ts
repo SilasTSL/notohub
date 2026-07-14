@@ -16,6 +16,8 @@ export interface Article {
 }
 
 export interface UserProfile {
+  name?: string
+  location?: string
   bio?: string
   avatarUrl?: string
   socialLinks?: {

@@ -114,6 +114,8 @@ export async function getAvatarUploadUrl(
 }
 
 export async function saveProfile(data: {
+  name?: string
+  location?: string
   bio?: string
   avatarUrl?: string
   socialLinks?: { twitter?: string; github?: string; linkedin?: string }

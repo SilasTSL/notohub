@@ -87,6 +87,38 @@ export default function ProfileFormFields({ username, profile }: ProfileFormFiel
         </div>
       </div>
 
+      {/* Basic info */}
+      <div className="bg-white rounded-2xl border border-[#e6e6e6] p-6 space-y-4">
+        <div>
+          <label htmlFor="name" className="block text-sm font-semibold text-[#1a1a1a] mb-2">
+            Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="name"
+            type="text"
+            maxLength={100}
+            placeholder="Jane Doe"
+            value={form.name}
+            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+            className="w-full border border-[#e6e6e6] rounded-lg px-3 py-2.5 text-sm text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:border-[#1a8917] transition-colors"
+          />
+        </div>
+        <div>
+          <label htmlFor="location" className="block text-sm font-semibold text-[#1a1a1a] mb-2">
+            Location <span className="text-[#b0b0b0] font-normal">(optional)</span>
+          </label>
+          <input
+            id="location"
+            type="text"
+            maxLength={100}
+            placeholder="San Francisco, CA"
+            value={form.location}
+            onChange={(e) => setForm((prev) => ({ ...prev, location: e.target.value }))}
+            className="w-full border border-[#e6e6e6] rounded-lg px-3 py-2.5 text-sm text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:border-[#1a8917] transition-colors"
+          />
+        </div>
+      </div>
+
       {/* Bio */}
       <div className="bg-white rounded-2xl border border-[#e6e6e6] p-6">
         <label htmlFor="bio" className="block text-sm font-semibold text-[#1a1a1a] mb-2">

@@ -94,7 +94,7 @@ export default function ProfilePage() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={saving || bioOver || Object.keys(socialErrors).length > 0}
+              disabled={saving || !form.name.trim() || bioOver || Object.keys(socialErrors).length > 0}
               className="w-full bg-[#1a8917] hover:bg-[#157313] disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-medium py-3 rounded-lg transition-colors"
             >
               {saving ? 'Publishing…' : 'Save & Publish Profile'}
@@ -105,6 +105,8 @@ export default function ProfilePage() {
           <aside className="w-full lg:w-72 lg:sticky lg:top-24 shrink-0">
             <ProfilePreview
               username={user.username}
+              name={form.name}
+              location={form.location}
               bio={form.bio}
               avatarUrl={previewAvatarUrl}
               socialLinks={form.socialLinks}

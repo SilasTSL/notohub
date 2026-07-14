@@ -41,6 +41,8 @@ def handle_get_profile(event: dict) -> dict:
         return not_found("User record not found")
 
     return ok({
+        "name": user.get("name"),
+        "location": user.get("location"),
         "bio": user.get("bio"),
         "avatarUrl": user.get("avatarUrl"),
         "socialLinks": user.get("socialLinks"),
@@ -159,6 +161,8 @@ def handle_save_profile(event: dict) -> dict:
     bio: str | None = body.get("bio")
     avatar_url: str | None = body.get("avatarUrl")
     social_links: dict | None = body.get("socialLinks")
+    name: str | None = body.get("name")
+    location: str | None = body.get("location")
 
     # ── Validate bio ──────────────────────────────────────────────────────────
     if bio is not None:
@@ -166,6 +170,20 @@ def handle_save_profile(event: dict) -> dict:
             return bad_request("bio must be a string")
         if len(bio) > 280:
             return bad_request("bio must be 280 characters or fewer")
+
+    # ── Validate name ─────────────────────────────────────────────────────────
+    if name is not None:
+        if not isinstance(name, str):
+            return bad_request("name must be a string")
+        if len(name) > 100:
+            return bad_request("name must be 100 characters or fewer")
+
+    # ── Validate location ─────────────────────────────────────────────────────
+    if location is not None:
+        if not isinstance(location, str):
+            return bad_request("location must be a string")
+        if len(location) > 100:
+            return bad_request("location must be 100 characters or fewer")
 
     # ── Validate avatarUrl ────────────────────────────────────────────────────
     if avatar_url is not None:
@@ -201,6 +219,8 @@ def handle_save_profile(event: dict) -> dict:
             bio=bio,
             avatar_url=avatar_url,
             social_links=social_links,
+            name=name,
+            location=location,
         )
         set_profile_published(user_sub)
     except Exception as exc:
