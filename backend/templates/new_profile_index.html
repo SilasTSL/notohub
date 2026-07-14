@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>silastsl — NotoHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#111417;
+    --ink-soft:#3d4650;
+    --mute:#6b7683;
+    --faint:#9aa4af;
+    --line:#e6e3dc;
+    --line-strong:#d4d0c6;
+    --paper:#f7f5f0;
+    --card:#ffffff;
+    --accent:#2f6f4e;
+    --accent-ink:#1e4a34;
+    --wash:#eef0ec;
+    --shadow:0 1px 2px rgba(20,25,30,.04), 0 8px 28px rgba(20,25,30,.05);
+    --shadow-hover:0 2px 6px rgba(20,25,30,.06), 0 20px 46px rgba(20,25,30,.10);
+    --serif:"Fraunces",Georgia,serif;
+    --sans:"Inter",system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.55}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--accent);color:#fff}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px clamp(20px,5vw,64px);
+    background:rgba(247,245,240,.82);
+    backdrop-filter:saturate(1.4) blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em}
+  .brand .mark{
+    width:26px;height:26px;border-radius:7px;background:var(--accent);color:#fff;
+    display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:15px;line-height:1;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+  }
+  .brand span{font-size:15px;color:var(--ink)}
+  .topbar .meta{font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.02em}
+
+  /* ---------- shell ---------- */
+  .shell{max-width:1120px;margin:0 auto;padding:0 clamp(20px,5vw,64px)}
+
+  /* ---------- masthead ---------- */
+  .hero{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;
+    gap:48px;align-items:end;
+    padding:clamp(56px,9vw,104px) 0 44px;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);
+    display:flex;align-items:center;gap:10px;margin-bottom:22px;
+  }
+  .eyebrow::before{content:"";width:22px;height:1.5px;background:var(--accent)}
+  h1.name{
+    font-family:var(--serif);font-weight:500;
+    font-size:clamp(52px,9.5vw,104px);line-height:.92;letter-spacing:-.02em;color:var(--ink);
+    word-break:break-word;
+  }
+  .bio{margin-top:26px;max-width:48ch;font-size:18px;line-height:1.6;color:var(--ink-soft)}
+  .socials{display:flex;gap:8px;margin-top:30px}
+  .socials a{
+    width:38px;height:38px;border-radius:9px;display:grid;place-items:center;
+    border:1px solid var(--line-strong);background:var(--card);color:var(--mute);transition:.18s ease;
+  }
+  .socials a:hover{color:var(--accent-ink);border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .socials svg{width:17px;height:17px}
+
+  .portrait{
+    position:relative;width:clamp(140px,20vw,196px);aspect-ratio:4/5;
+    border-radius:14px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line);
+  }
+  .portrait img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.12) contrast(1.02)}
+  .portrait figcaption{
+    position:absolute;left:10px;bottom:10px;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:#fff;
+    background:rgba(17,20,23,.55);backdrop-filter:blur(4px);padding:4px 8px;border-radius:6px;
+    display:flex;align-items:center;gap:5px;
+  }
+  .portrait figcaption svg{width:10px;height:10px;opacity:.85}
+
+  /* ---------- articles ---------- */
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;padding:64px 0 28px}
+  .section-head h2{font-family:var(--serif);font-weight:500;font-size:26px;letter-spacing:-.01em}
+  .section-head .count{font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:.04em}
+
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:22px;padding-bottom:80px}
+  .card{
+    grid-column:span 4;display:flex;flex-direction:column;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    transition:.2s cubic-bezier(.2,.7,.3,1);position:relative;
+  }
+  .card::after{
+    content:"";position:absolute;inset:0;border-radius:14px;
+    box-shadow:inset 0 0 0 1.5px var(--accent);opacity:0;transition:opacity .2s;pointer-events:none;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:transparent}
+  .card:hover::after{opacity:1}
+  .card:hover .thumb img{transform:scale(1.04)}
+  .card:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* feature the newest — larger thumb + headline carry it, no invented copy */
+  .card.feature{grid-column:span 8;grid-row:span 2;flex-direction:row}
+  .card.feature .thumb{width:56%;aspect-ratio:auto;border-bottom:0;border-right:1px solid var(--line)}
+  .card.feature .body{justify-content:space-between;padding:32px 30px 26px}
+  .card.feature h3{font-size:30px;line-height:1.12}
+
+  .thumb{aspect-ratio:16/10;overflow:hidden;background:var(--wash);border-bottom:1px solid var(--line)}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease}
+
+  .body{padding:20px 20px 18px;display:flex;flex-direction:column;flex:1;gap:12px}
+  .card h3{font-family:var(--serif);font-weight:500;font-size:19px;line-height:1.2;letter-spacing:-.005em;color:var(--ink)}
+  .card .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--line)}
+  .card .date{font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.02em}
+  .card .arrow{color:var(--faint);transition:.18s;display:grid;place-items:center}
+  .card:hover .arrow{color:var(--accent-ink);transform:translate(3px,-3px)}
+  .card .arrow svg{width:15px;height:15px}
+
+  /* ---------- footer ---------- */
+  footer{
+    border-top:1px solid var(--line);padding:36px clamp(20px,5vw,64px);
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:.02em;
+  }
+  footer .np{display:flex;align-items:center;gap:7px}
+  footer .np b{color:var(--accent-ink);font-weight:500}
+  footer a:hover{color:var(--ink)}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    .card,.card.feature{grid-column:span 6}
+    .card.feature{flex-direction:column;grid-row:auto}
+    .card.feature .thumb{width:100%;aspect-ratio:16/10;border-right:0;border-bottom:1px solid var(--line)}
+    .card.feature .body{padding:22px 20px 18px}
+    .card.feature h3{font-size:22px}
+  }
+  @media (max-width:680px){
+    .hero{grid-template-columns:1fr;gap:32px;align-items:start}
+    .portrait{order:-1;width:150px}
+    .grid{gap:16px}
+    .card,.card.feature{grid-column:span 12}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand"><span class="mark">N</span><span>NotoHub</span></div>
+    <div class="meta">notohub.io/silastsl</div>
+  </header>
+
+  <div class="shell">
+
+    <!-- masthead: username + name + description + socials (+ optional location) -->
+    <section class="hero">
+      <div class="hero-lede">
+        <!-- eyebrow = display name (falls back to nothing if absent) -->
+        <div class="eyebrow">Silas</div>
+        <!-- name = username -->
+        <h1 class="name">silastsl</h1>
+        <!-- bio = short description, verbatim -->
+        <p class="bio">Hi, I'm Silas! I'm a tech enthusiast who has worked across the spectrum — from scrappy startups to Big Tech. Lately, I've been diving deep into agentic systems, and I'm building VibeHost — an agentic solution for non-tech builders to deploy. Feel free to check out my articles!</p>
+        <nav class="socials" aria-label="Social links">
+          <a href="#" aria-label="X" title="X">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-6.8l-5.3-6.9L5.1 22H2l8.1-9.3L1.5 2h6.9l4.8 6.4L18.9 2Zm-1.2 18h1.9L7.2 4H5.2l12.5 16Z"/></svg>
+          </a>
+          <a href="#" aria-label="GitHub" title="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+          </a>
+          <a href="#" aria-label="LinkedIn" title="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14ZM7.12 20.45H3.55V9h3.57v11.45ZM22.22 0H1.77C.8 0 0 .78 0 1.74v20.51C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.75V1.74C24 .78 23.2 0 22.22 0Z"/></svg>
+          </a>
+        </nav>
+      </div>
+      <figure class="portrait">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNTAwIiB2aWV3Qm94PSIwIDAgNDAwIDUwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzNhNWE0OCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzIyMzIyYSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iNzIiIGZpbGw9IiNkZmU2ZTAiIG9wYWNpdHk9Ii45NSIvPgo8cGF0aCBkPSJNMTAwIDQzMCBRMjAwIDMwMCAzMDAgNDMwIEwzMDAgNTAwIEwxMDAgNTAwIFoiIGZpbGw9IiNkZmU2ZTAiIG9wYWNpdHk9Ii45NSIvPjwvc3ZnPg==" alt="Silas">
+        <!-- optional: render only if location is set -->
+        <figcaption>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Singapore
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- articles -->
+    <div class="section-head">
+      <h2>Articles</h2>
+      <span class="count">5 published</span>
+    </div>
+
+    <main class="grid">
+      <a class="card feature" href="#">
+        <div class="thumb"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNzAwIDQwMCI+PHJlY3Qgd2lkdGg9IjcwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwYzE0MTgiLz48bGluZSB4MT0iMzcxIiB5MT0iMTE3IiB4Mj0iMTMyIiB5Mj0iMzIyIiBzdHJva2U9IiMyZGQ0YmYiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iLjM1Ii8+PGxpbmUgeDE9IjM3MSIgeTE9IjExNyIgeDI9Ijc4IiB5Mj0iODQiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNDQ0IiB5MT0iNjQiIHgyPSIzNzEiIHkyPSIxMTciIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNDQ0IiB5MT0iNjQiIHgyPSIxMzYiIHkyPSIyMjciIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iMTE0IiB5MT0iMzE0IiB4Mj0iMzcxIiB5Mj0iMTE3IiBzdHJva2U9IiMyZGQ0YmYiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iLjM1Ii8+PGxpbmUgeDE9IjExNCIgeTE9IjMxNCIgeDI9IjExMSIgeTI9IjE2MyIgc3Ryb2tlPSIjMmRkNGJmIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii4zNSIvPjxsaW5lIHgxPSIxMzYiIHkxPSIyMjciIHgyPSIxMDMiIHkyPSIzMzUiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iMTM2IiB5MT0iMjI3IiB4Mj0iMTE0IiB5Mj0iMzE0IiBzdHJva2U9IiMyZGQ0YmYiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iLjM1Ii8+PGxpbmUgeDE9IjYzNiIgeTE9IjY5IiB4Mj0iNjM2IiB5Mj0iNjkiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNjM2IiB5MT0iNjkiIHgyPSI3OCIgeTI9Ijg0IiBzdHJva2U9IiMyZGQ0YmYiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iLjM1Ii8+PGxpbmUgeDE9IjU1OSIgeTE9IjE0OSIgeDI9IjExNCIgeTI9IjMxNCIgc3Ryb2tlPSIjMmRkNGJmIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii4zNSIvPjxsaW5lIHgxPSI1NTkiIHkxPSIxNDkiIHgyPSIxMTEiIHkyPSIxNjMiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNzgiIHkxPSI4NCIgeDI9IjQ0NCIgeTI9IjY0IiBzdHJva2U9IiMyZGQ0YmYiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iLjM1Ii8+PGxpbmUgeDE9Ijc4IiB5MT0iODQiIHgyPSIxMzIiIHkyPSIzMjIiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNDg0IiB5MT0iMjU0IiB4Mj0iNjM2IiB5Mj0iNjkiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNDg0IiB5MT0iMjU0IiB4Mj0iMTExIiB5Mj0iMTYzIiBzdHJva2U9IiMyZGQ0YmYiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iLjM1Ii8+PGxpbmUgeDE9IjExMSIgeTE9IjE2MyIgeDI9IjEwMyIgeTI9IjMzNSIgc3Ryb2tlPSIjMmRkNGJmIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii4zNSIvPjxsaW5lIHgxPSIxMTEiIHkxPSIxNjMiIHgyPSI0NzQiIHkyPSI3MCIgc3Ryb2tlPSIjMmRkNGJmIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii4zNSIvPjxsaW5lIHgxPSIxMzIiIHkxPSIzMjIiIHgyPSIxMTQiIHkyPSIzMTQiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iMTMyIiB5MT0iMzIyIiB4Mj0iNDQ0IiB5Mj0iNjQiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNDc0IiB5MT0iNzAiIHgyPSIxMzIiIHkyPSIzMjIiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNDc0IiB5MT0iNzAiIHgyPSIxMDMiIHkyPSIzMzUiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNjE5IiB5MT0iMTAzIiB4Mj0iNDc0IiB5Mj0iNzAiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iNjE5IiB5MT0iMTAzIiB4Mj0iMTM2IiB5Mj0iMjI3IiBzdHJva2U9IiMyZGQ0YmYiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iLjM1Ii8+PGxpbmUgeDE9IjI2OCIgeTE9IjMzOCIgeDI9IjU1OSIgeTI9IjE0OSIgc3Ryb2tlPSIjMmRkNGJmIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii4zNSIvPjxsaW5lIHgxPSIyNjgiIHkxPSIzMzgiIHgyPSI0NDQiIHkyPSI2NCIgc3Ryb2tlPSIjMmRkNGJmIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii4zNSIvPjxsaW5lIHgxPSIxMDMiIHkxPSIzMzUiIHgyPSIxMTEiIHkyPSIxNjMiIHN0cm9rZT0iIzJkZDRiZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuMzUiLz48bGluZSB4MT0iMTAzIiB5MT0iMzM1IiB4Mj0iNjE5IiB5Mj0iMTAzIiBzdHJva2U9IiMyZGQ0YmYiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iLjM1Ii8+PGNpcmNsZSBjeD0iMzcxIiBjeT0iMTE3IiByPSI2IiBmaWxsPSIjNWVlYWQ0Ii8+PGNpcmNsZSBjeD0iNDQ0IiBjeT0iNjQiIHI9IjYiIGZpbGw9IiM1ZWVhZDQiLz48Y2lyY2xlIGN4PSIxMTQiIGN5PSIzMTQiIHI9IjYiIGZpbGw9IiM1ZWVhZDQiLz48Y2lyY2xlIGN4PSIxMzYiIGN5PSIyMjciIHI9IjYiIGZpbGw9IiM1ZWVhZDQiLz48Y2lyY2xlIGN4PSI2MzYiIGN5PSI2OSIgcj0iNiIgZmlsbD0iIzVlZWFkNCIvPjxjaXJjbGUgY3g9IjU1OSIgY3k9IjE0OSIgcj0iNiIgZmlsbD0iIzVlZWFkNCIvPjxjaXJjbGUgY3g9Ijc4IiBjeT0iODQiIHI9IjYiIGZpbGw9IiM1ZWVhZDQiLz48Y2lyY2xlIGN4PSI0ODQiIGN5PSIyNTQiIHI9IjYiIGZpbGw9IiM1ZWVhZDQiLz48Y2lyY2xlIGN4PSIxMTEiIGN5PSIxNjMiIHI9IjYiIGZpbGw9IiM1ZWVhZDQiLz48Y2lyY2xlIGN4PSIxMzIiIGN5PSIzMjIiIHI9IjYiIGZpbGw9IiM1ZWVhZDQiLz48Y2lyY2xlIGN4PSI0NzQiIGN5PSI3MCIgcj0iNiIgZmlsbD0iIzVlZWFkNCIvPjxjaXJjbGUgY3g9IjYxOSIgY3k9IjEwMyIgcj0iNiIgZmlsbD0iIzVlZWFkNCIvPjxjaXJjbGUgY3g9IjI2OCIgY3k9IjMzOCIgcj0iNiIgZmlsbD0iIzVlZWFkNCIvPjxjaXJjbGUgY3g9IjEwMyIgY3k9IjMzNSIgcj0iNiIgZmlsbD0iIzVlZWFkNCIvPjwvc3ZnPg==" alt=""></div>
+        <div class="body">
+          <h3>Distributed Machine Learning Pipeline End-to-End</h3>
+          <div class="foot">
+            <span class="date">Jul 6, 2026</span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="card" href="#">
+        <div class="thumb"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNzAwIDQwMCI+PHJlY3Qgd2lkdGg9IjcwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwZTBmMWEiLz48cmVjdCB4PSIyMCIgeT0iMTgwIiB3aWR0aD0iMTIiIGhlaWdodD0iNDAiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjU2Ii8+PHJlY3QgeD0iNDIiIHk9IjExMyIgd2lkdGg9IjEyIiBoZWlnaHQ9IjE3NCIgcng9IjQiIGZpbGw9IiM3YzhjZjgiIG9wYWNpdHk9IjAuNzQiLz48cmVjdCB4PSI2NCIgeT0iNjMiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyNzQiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjg4Ii8+PHJlY3QgeD0iODYiIHk9IjQxIiB3aWR0aD0iMTIiIGhlaWdodD0iMzE4IiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC45NCIvPjxyZWN0IHg9IjEwOCIgeT0iNTMiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyOTQiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjkxIi8+PHJlY3QgeD0iMTMwIiB5PSI5NyIgd2lkdGg9IjEyIiBoZWlnaHQ9IjIwNiIgcng9IjQiIGZpbGw9IiM3YzhjZjgiIG9wYWNpdHk9IjAuNzkiLz48cmVjdCB4PSIxNTIiIHk9IjE2MSIgd2lkdGg9IjEyIiBoZWlnaHQ9Ijc4IiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC42MSIvPjxyZWN0IHg9IjE3NCIgeT0iMTMxIiB3aWR0aD0iMTIiIGhlaWdodD0iMTM4IiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC42OSIvPjxyZWN0IHg9IjE5NiIgeT0iNzUiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyNTAiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjg1Ii8+PHJlY3QgeD0iMjE4IiB5PSI0NCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjMxMiIgcng9IjQiIGZpbGw9IiM3YzhjZjgiIG9wYWNpdHk9IjAuOTMiLz48cmVjdCB4PSIyNDAiIHk9IjQ2IiB3aWR0aD0iMTIiIGhlaWdodD0iMzA4IiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC45MyIvPjxyZWN0IHg9IjI2MiIgeT0iODIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyMzYiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjgzIi8+PHJlY3QgeD0iMjg0IiB5PSIxNDEiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMTgiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjY2Ii8+PHJlY3QgeD0iMzA2IiB5PSIxNTAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMDAiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjY0Ii8+PHJlY3QgeD0iMzI4IiB5PSI4OSIgd2lkdGg9IjEyIiBoZWlnaHQ9IjIyMiIgcng9IjQiIGZpbGw9IiM3YzhjZjgiIG9wYWNpdHk9IjAuODEiLz48cmVjdCB4PSIzNTAiIHk9IjQ5IiB3aWR0aD0iMTIiIGhlaWdodD0iMzAyIiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC45MiIvPjxyZWN0IHg9IjM3MiIgeT0iNDIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIzMTYiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjk0Ii8+PHJlY3QgeD0iMzk0IiB5PSI2OSIgd2lkdGg9IjEyIiBoZWlnaHQ9IjI2MiIgcng9IjQiIGZpbGw9IiM3YzhjZjgiIG9wYWNpdHk9IjAuODYiLz48cmVjdCB4PSI0MTYiIHk9IjEyMyIgd2lkdGg9IjEyIiBoZWlnaHQ9IjE1NCIgcng9IjQiIGZpbGw9IiM3YzhjZjgiIG9wYWNpdHk9IjAuNzEiLz48cmVjdCB4PSI0MzgiIHk9IjE3MCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjYwIiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC41OCIvPjxyZWN0IHg9IjQ2MCIgeT0iMTA0IiB3aWR0aD0iMTIiIGhlaWdodD0iMTkyIiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC43NyIvPjxyZWN0IHg9IjQ4MiIgeT0iNTciIHdpZHRoPSIxMiIgaGVpZ2h0PSIyODYiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjkwIi8+PHJlY3QgeD0iNTA0IiB5PSI0MSIgd2lkdGg9IjEyIiBoZWlnaHQ9IjMxOCIgcng9IjQiIGZpbGw9IiM3YzhjZjgiIG9wYWNpdHk9IjAuOTQiLz48cmVjdCB4PSI1MjYiIHk9IjU4IiB3aWR0aD0iMTIiIGhlaWdodD0iMjg0IiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC44OSIvPjxyZWN0IHg9IjU0OCIgeT0iMTA1IiB3aWR0aD0iMTIiIGhlaWdodD0iMTkwIiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC43NiIvPjxyZWN0IHg9IjU3MCIgeT0iMTcxIiB3aWR0aD0iMTIiIGhlaWdodD0iNTgiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjU4Ii8+PHJlY3QgeD0iNTkyIiB5PSIxMjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxNTYiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjcyIi8+PHJlY3QgeD0iNjE0IiB5PSI2OCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjI2NCIgcng9IjQiIGZpbGw9IiM3YzhjZjgiIG9wYWNpdHk9IjAuODciLz48cmVjdCB4PSI2MzYiIHk9IjQyIiB3aWR0aD0iMTIiIGhlaWdodD0iMzE2IiByeD0iNCIgZmlsbD0iIzdjOGNmOCIgb3BhY2l0eT0iMC45NCIvPjxyZWN0IHg9IjY1OCIgeT0iNTAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIzMDAiIHJ4PSI0IiBmaWxsPSIjN2M4Y2Y4IiBvcGFjaXR5PSIwLjkyIi8+PC9zdmc+" alt=""></div>
+        <div class="body">
+          <h3>Sequential Models: RNNs vs. Transformers</h3>
+          <div class="foot">
+            <span class="date">Jul 5, 2026</span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="card" href="#">
+        <div class="thumb"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNzAwIDQwMCI+PHJlY3Qgd2lkdGg9IjcwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMxNDEwMjEiLz48cmVjdCB4PSIzMCIgeT0iNDAiIHdpZHRoPSIyNDEiIGhlaWdodD0iMTAiIHJ4PSIzIiBmaWxsPSIjYTc4YmZhIiBvcGFjaXR5PSIwLjcwIi8+PHJlY3QgeD0iMzAiIHk9IjcwIiB3aWR0aD0iMTg2IiBoZWlnaHQ9IjEwIiByeD0iMyIgZmlsbD0iI2E3OGJmYSIgb3BhY2l0eT0iMC41OCIvPjxyZWN0IHg9IjMwIiB5PSIxMDAiIHdpZHRoPSI0MjkiIGhlaWdodD0iMTAiIHJ4PSIzIiBmaWxsPSIjYTc4YmZhIiBvcGFjaXR5PSIwLjY0Ii8+PHJlY3QgeD0iMzAiIHk9IjEzMCIgd2lkdGg9IjQxNyIgaGVpZ2h0PSIxMCIgcng9IjMiIGZpbGw9IiNhNzhiZmEiIG9wYWNpdHk9IjAuNDMiLz48cmVjdCB4PSIzMCIgeT0iMTYwIiB3aWR0aD0iMTI2IiBoZWlnaHQ9IjEwIiByeD0iMyIgZmlsbD0iI2E3OGJmYSIgb3BhY2l0eT0iMC44NSIvPjxyZWN0IHg9IjMwIiB5PSIxOTAiIHdpZHRoPSIzNjAiIGhlaWdodD0iMTAiIHJ4PSIzIiBmaWxsPSIjYTc4YmZhIiBvcGFjaXR5PSIwLjUzIi8+PHJlY3QgeD0iMzAiIHk9IjIyMCIgd2lkdGg9IjIzOSIgaGVpZ2h0PSIxMCIgcng9IjMiIGZpbGw9IiNhNzhiZmEiIG9wYWNpdHk9IjAuNTAiLz48cmVjdCB4PSIzMCIgeT0iMjUwIiB3aWR0aD0iNDg3IiBoZWlnaHQ9IjEwIiByeD0iMyIgZmlsbD0iI2E3OGJmYSIgb3BhY2l0eT0iMC42NCIvPjxyZWN0IHg9IjMwIiB5PSIyODAiIHdpZHRoPSI0MDEiIGhlaWdodD0iMTAiIHJ4PSIzIiBmaWxsPSIjYTc4YmZhIiBvcGFjaXR5PSIwLjY0Ii8+PHJlY3QgeD0iMzAiIHk9IjMxMCIgd2lkdGg9IjQ0NyIgaGVpZ2h0PSIxMCIgcng9IjMiIGZpbGw9IiNhNzhiZmEiIG9wYWNpdHk9IjAuODMiLz48cmVjdCB4PSIzMCIgeT0iMzQwIiB3aWR0aD0iMjM4IiBoZWlnaHQ9IjEwIiByeD0iMyIgZmlsbD0iI2E3OGJmYSIgb3BhY2l0eT0iMC43MiIvPjwvc3ZnPg==" alt=""></div>
+        <div class="body">
+          <h3>Demystifying Hertz: A Deep Dive into ByteDance's High-Performance Framework</h3>
+          <div class="foot">
+            <span class="date">Jul 5, 2026</span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="card" href="#">
+        <div class="thumb"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNzAwIDQwMCI+PHJlY3Qgd2lkdGg9IjcwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwZDE3MTIiLz48Y2lyY2xlIGN4PSIzNTAiIGN5PSIyMDAiIHI9IjM0IiBmaWxsPSIjMzRkMzk5Ii8+PGxpbmUgeDE9IjM1MCIgeTE9IjIwMCIgeDI9IjUwMCIgeTI9IjIwMCIgc3Ryb2tlPSIjMzRkMzk5IiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iLjQiLz48Y2lyY2xlIGN4PSI1MDAiIGN5PSIyMDAiIHI9IjE0IiBmaWxsPSIjNmVlN2I3Ii8+PGxpbmUgeDE9IjM1MCIgeTE9IjIwMCIgeDI9IjQ1NiIgeTI9IjI4NSIgc3Ryb2tlPSIjMzRkMzk5IiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iLjQiLz48Y2lyY2xlIGN4PSI0NTYiIGN5PSIyODUiIHI9IjE0IiBmaWxsPSIjNmVlN2I3Ii8+PGxpbmUgeDE9IjM1MCIgeTE9IjIwMCIgeDI9IjM1MCIgeTI9IjMyMCIgc3Ryb2tlPSIjMzRkMzk5IiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iLjQiLz48Y2lyY2xlIGN4PSIzNTAiIGN5PSIzMjAiIHI9IjE0IiBmaWxsPSIjNmVlN2I3Ii8+PGxpbmUgeDE9IjM1MCIgeTE9IjIwMCIgeDI9IjI0NCIgeTI9IjI4NSIgc3Ryb2tlPSIjMzRkMzk5IiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iLjQiLz48Y2lyY2xlIGN4PSIyNDQiIGN5PSIyODUiIHI9IjE0IiBmaWxsPSIjNmVlN2I3Ii8+PGxpbmUgeDE9IjM1MCIgeTE9IjIwMCIgeDI9IjIwMCIgeTI9IjIwMCIgc3Ryb2tlPSIjMzRkMzk5IiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iLjQiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjE0IiBmaWxsPSIjNmVlN2I3Ii8+PGxpbmUgeDE9IjM1MCIgeTE9IjIwMCIgeDI9IjI0NCIgeTI9IjExNSIgc3Ryb2tlPSIjMzRkMzk5IiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iLjQiLz48Y2lyY2xlIGN4PSIyNDQiIGN5PSIxMTUiIHI9IjE0IiBmaWxsPSIjNmVlN2I3Ii8+PGxpbmUgeDE9IjM1MCIgeTE9IjIwMCIgeDI9IjM1MCIgeTI9IjgwIiBzdHJva2U9IiMzNGQzOTkiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIuNCIvPjxjaXJjbGUgY3g9IjM1MCIgY3k9IjgwIiByPSIxNCIgZmlsbD0iIzZlZTdiNyIvPjxsaW5lIHgxPSIzNTAiIHkxPSIyMDAiIHgyPSI0NTYiIHkyPSIxMTUiIHN0cm9rZT0iIzM0ZDM5OSIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9Ii40Ii8+PGNpcmNsZSBjeD0iNDU2IiBjeT0iMTE1IiByPSIxNCIgZmlsbD0iIzZlZTdiNyIvPjwvc3ZnPg==" alt=""></div>
+        <div class="body">
+          <h3>Agent — Production Level System Design</h3>
+          <div class="foot">
+            <span class="date">Jul 5, 2026</span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="card" href="#">
+        <div class="thumb"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNzAwIDQwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJza3kiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZjVjODhhIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZTc5YTZiIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSI3MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI3NreSkiLz48cmVjdCB4PSI2MCIgeT0iMjYwIiB3aWR0aD0iMzQiIGhlaWdodD0iMTIwIiByeD0iNiIgZmlsbD0iIzFjMmEzMyIvPjxjaXJjbGUgY3g9Ijc3IiBjeT0iMjQ4IiByPSIxOCIgZmlsbD0iIzFjMmEzMyIvPjxyZWN0IHg9IjE0MCIgeT0iMjYwIiB3aWR0aD0iMzQiIGhlaWdodD0iMTIwIiByeD0iNiIgZmlsbD0iIzFjMmEzMyIvPjxjaXJjbGUgY3g9IjE1NyIgY3k9IjI0OCIgcj0iMTgiIGZpbGw9IiMxYzJhMzMiLz48cmVjdCB4PSIyMjAiIHk9IjI2MCIgd2lkdGg9IjM0IiBoZWlnaHQ9IjEyMCIgcng9IjYiIGZpbGw9IiMxYzJhMzMiLz48Y2lyY2xlIGN4PSIyMzciIGN5PSIyNDgiIHI9IjE4IiBmaWxsPSIjMWMyYTMzIi8+PHJlY3QgeD0iMzAwIiB5PSIyNjAiIHdpZHRoPSIzNCIgaGVpZ2h0PSIxMjAiIHJ4PSI2IiBmaWxsPSIjMWMyYTMzIi8+PGNpcmNsZSBjeD0iMzE3IiBjeT0iMjQ4IiByPSIxOCIgZmlsbD0iIzFjMmEzMyIvPjxyZWN0IHg9IjM4MCIgeT0iMjYwIiB3aWR0aD0iMzQiIGhlaWdodD0iMTIwIiByeD0iNiIgZmlsbD0iIzFjMmEzMyIvPjxjaXJjbGUgY3g9IjM5NyIgY3k9IjI0OCIgcj0iMTgiIGZpbGw9IiMxYzJhMzMiLz48cmVjdCB4PSI0NjAiIHk9IjI2MCIgd2lkdGg9IjM0IiBoZWlnaHQ9IjEyMCIgcng9IjYiIGZpbGw9IiMxYzJhMzMiLz48Y2lyY2xlIGN4PSI0NzciIGN5PSIyNDgiIHI9IjE4IiBmaWxsPSIjMWMyYTMzIi8+PHJlY3QgeD0iNTQwIiB5PSIyNjAiIHdpZHRoPSIzNCIgaGVpZ2h0PSIxMjAiIHJ4PSI2IiBmaWxsPSIjMWMyYTMzIi8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iMjQ4IiByPSIxOCIgZmlsbD0iIzFjMmEzMyIvPjxwb2x5Z29uIHBvaW50cz0iNTUsMjEwIDk5LDIxMCA3NywyMjYiIGZpbGw9IiMyNDM2NDIiLz48cG9seWdvbiBwb2ludHM9IjEzNSwyMTAgMTc5LDIxMCAxNTcsMjI2IiBmaWxsPSIjMjQzNjQyIi8+PHBvbHlnb24gcG9pbnRzPSIyMTUsMjEwIDI1OSwyMTAgMjM3LDIyNiIgZmlsbD0iIzI0MzY0MiIvPjxwb2x5Z29uIHBvaW50cz0iMjk1LDIxMCAzMzksMjEwIDMxNywyMjYiIGZpbGw9IiMyNDM2NDIiLz48cG9seWdvbiBwb2ludHM9IjM3NSwyMTAgNDE5LDIxMCAzOTcsMjI2IiBmaWxsPSIjMjQzNjQyIi8+PHBvbHlnb24gcG9pbnRzPSI0NTUsMjEwIDQ5OSwyMTAgNDc3LDIyNiIgZmlsbD0iIzI0MzY0MiIvPjxwb2x5Z29uIHBvaW50cz0iNTM1LDIxMCA1NzksMjEwIDU1NywyMjYiIGZpbGw9IiMyNDM2NDIiLz48L3N2Zz4=" alt=""></div>
+        <div class="body">
+          <h3>Beginner's Guide for New Graduates to the Tech Industry</h3>
+          <div class="foot">
+            <span class="date">Jul 5, 2026</span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+        </div>
+      </a>
+    </main>
+  </div>
+
+  <footer>
+    <div class="np">Published with <b>NotoHub</b></div>
+    <div>© 2026 silastsl</div>
+  </footer>
+
+</body>
+</html>

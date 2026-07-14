@@ -228,14 +228,18 @@ def handle_save_profile(event: dict) -> dict:
 
     # ── Fetch fresh profile to embed in the shell ─────────────────────────────
     user_record = get_user(user_sub)
+    saved_name = user_record.get("name") if user_record else name
     saved_bio = user_record.get("bio") if user_record else bio
+    saved_location = user_record.get("location") if user_record else location
     saved_avatar = user_record.get("avatarUrl") if user_record else avatar_url
     saved_links = user_record.get("socialLinks") if user_record else social_links
 
     # ── Render and upload profile shell HTML ──────────────────────────────────
     shell_html = render_profile_index_shell(
         username=username,
+        name=saved_name,
         bio=saved_bio,
+        location=saved_location,
         avatar_url=saved_avatar,
         social_links=saved_links,
         api_base_url=config.public_api_url,
