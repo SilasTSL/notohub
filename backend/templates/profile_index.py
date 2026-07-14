@@ -131,11 +131,7 @@ _PAGE_TEMPLATE = """<!DOCTYPE html>
     border-bottom:1px solid var(--line);
   }
   .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em}
-  .brand .mark{
-    width:26px;height:26px;border-radius:7px;background:var(--accent);color:#fff;
-    display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:15px;line-height:1;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
-  }
+  .brand .mark{height:26px;width:auto;display:block}
   .brand span{font-size:15px;color:var(--ink)}
   .topbar .meta{font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.02em}
 
@@ -255,7 +251,7 @@ _PAGE_TEMPLATE = """<!DOCTYPE html>
 <body>
 
   <header class="topbar">
-    <div class="brand"><span class="mark">N</span><span>NotoHub</span></div>
+    <a class="brand" href="https://www.notohub.com/"><img class="mark" src="/logo-icon.png" alt=""><span>NotoHub</span></a>
     <div class="meta">__META_URL__</div>
   </header>
 
@@ -265,7 +261,7 @@ _PAGE_TEMPLATE = """<!DOCTYPE html>
     <section class="hero">
       <div class="hero-lede">
         __EYEBROW_HTML__
-        <h1 class="name">__USERNAME__</h1>
+        <h1 class="name">__DISPLAY_NAME__</h1>
         __BIO_HTML__
         __SOCIALS_HTML__
       </div>
@@ -436,9 +432,11 @@ def render_profile_index_shell(
     Return a complete, self-contained HTML page for the user's public profile.
 
     Args:
-        username:      NotoHub username — always present.
-        name:          Display name, if the user set one. Omits the eyebrow
-                       label entirely when absent (never renders an empty one).
+        username:      NotoHub username — always present. Rendered as the small
+                       accented eyebrow label above the big heading.
+        name:          Display name, if the user set one. Rendered as the big
+                       serif heading; falls back to username when absent so
+                       the heading is never empty.
         bio:           Short description/bio, if set.
         location:      Free-text location, if set. Omits the portrait's
                        figcaption entirely when absent.
@@ -452,8 +450,9 @@ def render_profile_index_shell(
     """
     sl = social_links or {}
 
-    # ── Eyebrow (display name) ──────────────────────────────────────────────
-    eyebrow_html = f'<div class="eyebrow">{_e(name)}</div>' if name else ""
+    # ── Eyebrow (username) + big heading (display name, falls back to username) ─
+    eyebrow_html = f'<div class="eyebrow">{_e(username)}</div>'
+    display_name = name if name else username
 
     # ── Bio ──────────────────────────────────────────────────────────────────
     bio_html = f'<p class="bio">{_e(bio)}</p>' if bio else ""
@@ -482,7 +481,7 @@ def render_profile_index_shell(
 
     # ── Portrait: avatar (real or placeholder) + optional location caption ───
     avatar_src = _e(avatar_url) if avatar_url else _avatar_placeholder_data_uri(username)
-    portrait_alt = _e(name) if name else _e(username)
+    portrait_alt = _e(display_name)
     location_html = (
         f'<figcaption>{_LOCATION_PIN_SVG}{_e(location)}</figcaption>' if location else ""
     )
@@ -494,6 +493,7 @@ def render_profile_index_shell(
         .replace("__TITLE__", f"{_e(username)} — NotoHub")
         .replace("__META_URL__", f"notohub.com/{_e(username)}")
         .replace("__EYEBROW_HTML__", eyebrow_html)
+        .replace("__DISPLAY_NAME__", _e(display_name))
         .replace("__BIO_HTML__", bio_html)
         .replace("__SOCIALS_HTML__", socials_html)
         .replace("__AVATAR_SRC__", avatar_src)
